@@ -420,44 +420,51 @@ export default function DotsCard({ childId, childName }: Props) {
           )}
         </div>
 
-        {/* 開始日調整 */}
+        {/* カードセット調整 */}
         <div className="text-center">
           <button
             onClick={() => setShowDebug(!showDebug)}
             className="text-xs text-gray-400 hover:text-gray-500"
           >
-            {showDebug ? "閉じる" : "開始日を調整"}
+            {showDebug ? "閉じる" : "開始カードを変更"}
           </button>
         </div>
         {showDebug && (
           <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm space-y-3">
             <p className="text-xs text-gray-500">
-              紙のドッツカードなどで途中まで進めていた場合、現在の日数を調整できます。
+              紙のドッツカードなどで途中まで進めていた場合、開始位置を変更できます。
             </p>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500">日数:</span>
-              <button
-                onClick={() => changeDay(progress!.currentDay - 1)}
-                disabled={progress!.currentDay <= 1}
-                className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-30"
+            <div className="flex items-center gap-2 text-sm flex-wrap">
+              <span className="text-gray-500">開始:</span>
+              <select
+                value={todayCards[0] ?? 1}
+                onChange={(e) => {
+                  const startNum = parseInt(e.target.value);
+                  // カード開始番号からdayを逆算
+                  let newDay: number;
+                  if (startNum <= 1) {
+                    newDay = 1;
+                  } else {
+                    newDay = Math.floor((startNum - 1) / 2) + 5;
+                  }
+                  changeDay(newDay);
+                }}
+                className="rounded border border-gray-300 px-2 py-1 text-sm"
               >
-                -
-              </button>
-              <input
-                type="number"
-                value={progress!.currentDay}
-                onChange={(e) => changeDay(parseInt(e.target.value) || 1)}
-                min={1}
-                className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm"
-              />
-              <button
-                onClick={() => changeDay(progress!.currentDay + 1)}
-                className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200"
-              >
-                +
-              </button>
+                <option value={1}>1〜10</option>
+                {Array.from({ length: 46 }, (_, i) => {
+                  const start = 3 + i * 2;
+                  const end = Math.min(start + 9, 100);
+                  if (start > 91) return null;
+                  return (
+                    <option key={start} value={start}>
+                      {start}〜{end}
+                    </option>
+                  );
+                })}
+              </select>
               <span className="text-xs text-gray-400">
-                → {todayCards.length > 0 ? `${todayCards[0]}〜${todayCards[todayCards.length - 1]}` : "完了"}
+                ({progress!.currentDay}日目)
               </span>
             </div>
           </div>
