@@ -32,7 +32,7 @@ jobs:
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > edup-keystore.jks
 
       - name: Initialize TWA project
-        run: bubblewrap init --manifest="https://${{ vars.TWA_HOST || 'edup.vercel.app' }}/manifest.json" --directory=./twa-output
+        run: bubblewrap init --manifest="https://${{ vars.TWA_HOST || 'edup-nine.vercel.app' }}/manifest.json" --directory=./twa-output
 
       - name: Build AAB
         working-directory: edup-app/twa-output

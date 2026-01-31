@@ -1,6 +1,6 @@
 {
   "packageId": "com.edup.tv",
-  "host": "edup.vercel.app",
+  "host": "edup-nine.vercel.app",
   "name": "えでゅ",
   "launcherName": "えでゅ",
   "display": "standalone",
@@ -9,8 +9,8 @@
   "backgroundColor": "#ffffff",
   "enableNotifications": false,
   "startUrl": "/",
-  "iconUrl": "https://edup.vercel.app/icons/icon-512x512.png",
-  "maskableIconUrl": "https://edup.vercel.app/icons/icon-512x512.png",
+  "iconUrl": "https://edup-nine.vercel.app/icons/icon-512x512.png",
+  "maskableIconUrl": "https://edup-nine.vercel.app/icons/icon-512x512.png",
   "shortcuts": [],
   "signingKey": {
     "path": "edup-keystore.jks",
