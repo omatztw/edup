@@ -100,6 +100,7 @@ function speak(text: string) {
 function playMp3Fallback(num: number | null) {
   if (num && num >= 1 && num <= 100) {
     const audio = new Audio(`/audio/dots/${num}.mp3`);
+    audio.playbackRate = 1.5;
     audio.play().catch(() => {});
   }
 }
