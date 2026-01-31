@@ -74,7 +74,7 @@ function generateDotPositions(
   return positions;
 }
 
-/** 読み上げ（Google TTS mp3を優先、speechSynthesisをフォールバック） */
+/** 読み上げ（speechSynthesis優先、非対応時はGoogle TTS mp3にフォールバック） */
 function speak(text: string) {
   if (typeof window === "undefined") return;
 
@@ -82,27 +82,26 @@ function speak(text: string) {
   const match = text.match(/(\d+)/);
   const num = match ? parseInt(match[1]) : null;
 
-  // mp3再生（Google TTS生成済み、高速再生対応）
-  if (num && num >= 1 && num <= 100) {
-    const audio = new Audio(`/audio/dots/${num}.mp3`);
-    audio.playbackRate = 1.5;
-    audio.play().catch(() => {
-      // mp3再生失敗時はspeechSynthesisにフォールバック
-      speakFallback(text);
-    });
+  // speechSynthesisが使えればそちらを優先（レイテンシが低い）
+  if (window.speechSynthesis) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    utter.rate = 1.5;
+    utter.onerror = () => playMp3Fallback(num);
+    window.speechSynthesis.speak(utter);
     return;
   }
 
-  speakFallback(text);
+  // speechSynthesis非対応: Google TTS mp3を再生
+  playMp3Fallback(num);
 }
 
-/** speechSynthesisフォールバック */
-function speakFallback(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "ja-JP";
-  utter.rate = 1.5;
-  window.speechSynthesis.speak(utter);
+/** mp3フォールバック（Google TTS生成済み） */
+function playMp3Fallback(num: number | null) {
+  if (num && num >= 1 && num <= 100) {
+    const audio = new Audio(`/audio/dots/${num}.mp3`);
+    audio.play().catch(() => {});
+  }
 }
 
 export default function DotsCard({ childId, childName }: Props) {
