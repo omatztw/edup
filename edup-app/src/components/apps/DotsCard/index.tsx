@@ -19,7 +19,7 @@ type Props = {
 };
 
 function getDefaultProgress(): ProgressData {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalToday();
   return {
     startDate: today,
     currentDay: 1,
@@ -27,6 +27,12 @@ function getDefaultProgress(): ProgressData {
     lastSessionDate: today,
     speed: 1,
   };
+}
+
+/** ローカルタイムゾーンの今日の日付をYYYY-MM-DD形式で返す */
+function getLocalToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /** 日数からカードの開始番号を計算 */
@@ -128,7 +134,7 @@ export default function DotsCard({ childId, childName }: Props) {
         .eq("app_id", "dots-card")
         .single();
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLocalToday();
 
       if (data?.data) {
         const p = data.data as ProgressData;
@@ -228,7 +234,7 @@ export default function DotsCard({ childId, childName }: Props) {
         const updated = {
           ...progress,
           todaySessions: progress.todaySessions + 1,
-          lastSessionDate: new Date().toISOString().slice(0, 10),
+          lastSessionDate: getLocalToday(),
         };
         setProgress(updated);
         saveProgress(updated);
@@ -468,6 +474,22 @@ export default function DotsCard({ childId, childName }: Props) {
                 })}
               </select>
             </div>
+            {progress!.todaySessions > 0 && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-500">今日の回数:</span>
+                <span className="text-gray-600">{progress!.todaySessions}回</span>
+                <button
+                  onClick={() => {
+                    const updated = { ...progress!, todaySessions: 0 };
+                    setProgress(updated);
+                    saveProgress(updated);
+                  }}
+                  className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200"
+                >
+                  リセット
+                </button>
+              </div>
+            )}
           </div>
         )}
 
