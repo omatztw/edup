@@ -44,12 +44,12 @@ function getCardsForDay(day: number): number[] {
   );
 }
 
-// ドットは常に同じサイズ（100個収まる大きさ）
-const DOT_SIZE_PX = 12;
-// カード内のパディング（%）。ドットが端にかからないよう確保
-const PAD = 6;
-// 衝突判定の最小距離（%）。DOT_SIZE_PX / カードサイズ(~500px) * 100 ≒ 2.4 に余裕を持たせる
-const MIN_DIST = 3.5;
+// ドットは常に同じサイズ。カードが90vmin(iPad約700px)想定で100個収まる大きさ
+const DOT_SIZE_PX = 24;
+// カード内のパディング（%）
+const PAD = 5;
+// 衝突判定の最小距離（%）。DOT_SIZE_PX / カードサイズ(~700px) * 100 ≒ 3.4 に余裕を持たせる
+const MIN_DIST = 4;
 
 /** ドッツをランダム配置 */
 function generateDotPositions(
@@ -91,6 +91,7 @@ export default function DotsCard({ childId, childName }: Props) {
   const [dotPositions, setDotPositions] = useState<{ x: number; y: number }[]>(
     []
   );
+  const [showDebug, setShowDebug] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabase = createClient();
 
@@ -200,6 +201,14 @@ export default function DotsCard({ childId, childName }: Props) {
     saveProgress(updated);
   };
 
+  // 日数変更（デバッグ用）
+  const changeDay = (newDay: number) => {
+    if (!progress || newDay < 1) return;
+    const updated = { ...progress, currentDay: newDay };
+    setProgress(updated);
+    saveProgress(updated);
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -212,7 +221,7 @@ export default function DotsCard({ childId, childName }: Props) {
   if (phase === "playing") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
-        <div className="relative h-[80vmin] w-[80vmin] max-h-[500px] max-w-[500px] rounded-2xl bg-white shadow-lg border-2 border-gray-100">
+        <div className="relative h-[90vmin] w-[90vmin] max-h-[700px] max-w-[700px] rounded-2xl bg-white shadow-lg border-2 border-gray-100">
           {dotPositions.map((pos, i) => (
             <div
               key={i}
@@ -236,7 +245,7 @@ export default function DotsCard({ childId, childName }: Props) {
 
   // セッション完了
   if (phase === "done") {
-    const remaining = progress ? 3 - progress.todaySessions : 0;
+    const remaining = progress ? Math.max(0, 3 - progress.todaySessions) : 0;
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-sky-50 to-white px-4">
         <div className="w-full max-w-sm space-y-6 text-center">
@@ -245,21 +254,23 @@ export default function DotsCard({ childId, childName }: Props) {
           </div>
           <h2 className="text-xl font-bold text-gray-800">
             {remaining <= 0
-              ? "今日は完了です！"
+              ? "今日の規定回数クリア！"
               : `あと ${remaining} 回`}
           </h2>
           <p className="text-sm text-gray-500">
-            {childName}さん・{progress?.currentDay}日目
+            {childName}さん・{progress?.currentDay}日目・今日 {progress?.todaySessions} 回完了
           </p>
           <div className="flex flex-col gap-3">
-            {remaining > 0 && (
-              <button
-                onClick={startSession}
-                className="rounded-lg bg-sky-500 py-3 text-base font-medium text-white transition hover:bg-sky-600"
-              >
-                もう1回やる
-              </button>
-            )}
+            <button
+              onClick={startSession}
+              className={`rounded-lg py-3 text-base font-medium transition ${
+                remaining > 0
+                  ? "bg-sky-500 text-white hover:bg-sky-600"
+                  : "border border-sky-500 text-sky-600 hover:bg-sky-50"
+              }`}
+            >
+              {remaining > 0 ? "もう1回やる" : "もう1回やる（追加）"}
+            </button>
             <a
               href="/dashboard"
               className="rounded-lg border border-gray-300 py-3 text-base font-medium text-gray-600 transition hover:bg-gray-50"
@@ -322,21 +333,79 @@ export default function DotsCard({ childId, childName }: Props) {
                 ))}
               </div>
 
-              {sessionsLeft > 0 ? (
-                <button
-                  onClick={startSession}
-                  className="w-full rounded-lg bg-sky-500 py-4 text-lg font-bold text-white transition hover:bg-sky-600"
-                >
-                  スタート
-                </button>
-              ) : (
+              {sessionsLeft <= 0 && (
                 <div className="rounded-lg bg-green-50 p-3 text-center text-sm text-green-700">
-                  今日のセッションは完了です！
+                  今日の規定回数（3回）クリア！
                 </div>
               )}
+
+              <button
+                onClick={startSession}
+                className={`w-full rounded-lg py-4 text-lg font-bold transition ${
+                  sessionsLeft > 0
+                    ? "bg-sky-500 text-white hover:bg-sky-600"
+                    : "border border-sky-500 text-sky-600 hover:bg-sky-50"
+                }`}
+              >
+                {sessionsLeft > 0 ? "スタート" : "追加でスタート"}
+              </button>
             </>
           )}
         </div>
+
+        {/* デバッグ設定 */}
+        <div className="text-center">
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="text-xs text-gray-300 hover:text-gray-400"
+          >
+            設定
+          </button>
+        </div>
+        {showDebug && (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 space-y-3">
+            <p className="text-xs font-medium text-gray-400">デバッグ設定</p>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-500">日数:</span>
+              <button
+                onClick={() => changeDay(progress!.currentDay - 1)}
+                disabled={progress!.currentDay <= 1}
+                className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300 disabled:opacity-30"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                value={progress!.currentDay}
+                onChange={(e) => changeDay(parseInt(e.target.value) || 1)}
+                min={1}
+                className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm"
+              />
+              <button
+                onClick={() => changeDay(progress!.currentDay + 1)}
+                className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300"
+              >
+                +
+              </button>
+              <span className="text-xs text-gray-400">
+                → {todayCards.length > 0 ? `${todayCards[0]}〜${todayCards[todayCards.length - 1]}` : "完了"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-500">セッション数リセット:</span>
+              <button
+                onClick={() => {
+                  const updated = { ...progress!, todaySessions: 0 };
+                  setProgress(updated);
+                  saveProgress(updated);
+                }}
+                className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300"
+              >
+                0に戻す
+              </button>
+            </div>
+          </div>
+        )}
 
         <a
           href="/dashboard"
