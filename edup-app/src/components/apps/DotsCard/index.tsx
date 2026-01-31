@@ -474,6 +474,38 @@ export default function DotsCard({ childId, childName }: Props) {
                 })}
               </select>
             </div>
+            {(progress!.cardStart ?? 1) === 1 && (
+              <div className="flex items-center gap-2 text-sm flex-wrap">
+                <span className="text-gray-500">1〜10の日目:</span>
+                <select
+                  value={Math.min(progress!.currentDay, 5)}
+                  onChange={(e) => {
+                    const newDay = parseInt(e.target.value);
+                    const today = getLocalToday();
+                    const newStartDate = new Date(today);
+                    newStartDate.setDate(newStartDate.getDate() - (newDay - 1));
+                    const startDateStr = `${newStartDate.getFullYear()}-${String(newStartDate.getMonth() + 1).padStart(2, "0")}-${String(newStartDate.getDate()).padStart(2, "0")}`;
+                    const updated = {
+                      ...progress!,
+                      currentDay: newDay,
+                      startDate: startDateStr,
+                    };
+                    setProgress(updated);
+                    saveProgress(updated);
+                  }}
+                  className="rounded border border-gray-300 px-2 py-1 text-sm"
+                >
+                  {[1, 2, 3, 4, 5].map((d) => (
+                    <option key={d} value={d}>
+                      {d}日目
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs text-gray-400">
+                  （5日間同じカードを繰り返します）
+                </span>
+              </div>
+            )}
             {progress!.todaySessions > 0 && (
               <div className="flex items-center gap-2 text-sm">
                 <span className="text-gray-500">今日の回数:</span>
