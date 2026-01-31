@@ -44,12 +44,12 @@ function getCardsForDay(day: number): number[] {
   );
 }
 
-// ドットは常に同じサイズ（100個収まる大きさ）
-const DOT_SIZE_PX = 12;
-// カード内のパディング（%）。ドットが端にかからないよう確保
-const PAD = 6;
-// 衝突判定の最小距離（%）。DOT_SIZE_PX / カードサイズ(~500px) * 100 ≒ 2.4 に余裕を持たせる
-const MIN_DIST = 3.5;
+// ドットは常に同じサイズ。カードが90vmin(iPad約700px)想定で100個収まる大きさ
+const DOT_SIZE_PX = 24;
+// カード内のパディング（%）
+const PAD = 5;
+// 衝突判定の最小距離（%）。DOT_SIZE_PX / カードサイズ(~700px) * 100 ≒ 3.4 に余裕を持たせる
+const MIN_DIST = 4;
 
 /** ドッツをランダム配置 */
 function generateDotPositions(
@@ -212,7 +212,7 @@ export default function DotsCard({ childId, childName }: Props) {
   if (phase === "playing") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
-        <div className="relative h-[80vmin] w-[80vmin] max-h-[500px] max-w-[500px] rounded-2xl bg-white shadow-lg border-2 border-gray-100">
+        <div className="relative h-[90vmin] w-[90vmin] max-h-[700px] max-w-[700px] rounded-2xl bg-white shadow-lg border-2 border-gray-100">
           {dotPositions.map((pos, i) => (
             <div
               key={i}
