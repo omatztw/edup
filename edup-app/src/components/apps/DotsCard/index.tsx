@@ -74,13 +74,35 @@ function generateDotPositions(
   return positions;
 }
 
-/** 読み上げ */
+/** 読み上げ（speechSynthesis非対応の場合はmp3フォールバック） */
 function speak(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "ja-JP";
-  utter.rate = 1.2;
-  window.speechSynthesis.speak(utter);
+  if (typeof window === "undefined") return;
+
+  // テキストから数字を抽出
+  const match = text.match(/(\d+)/);
+  const num = match ? parseInt(match[1]) : null;
+
+  // mp3フォールバックを試行する関数
+  const playMp3 = () => {
+    if (num && num >= 1 && num <= 100) {
+      const audio = new Audio(`/audio/dots/${num}.mp3`);
+      audio.play().catch(() => {});
+    }
+  };
+
+  // speechSynthesisが使えればそちらを優先
+  if (window.speechSynthesis) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "ja-JP";
+    utter.rate = 1.2;
+    // speechSynthesisがエラーになった場合mp3にフォールバック
+    utter.onerror = () => playMp3();
+    window.speechSynthesis.speak(utter);
+    return;
+  }
+
+  // speechSynthesis非対応: mp3ファイルを再生
+  playMp3();
 }
 
 export default function DotsCard({ childId, childName }: Props) {
