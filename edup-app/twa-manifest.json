@@ -1,0 +1,35 @@
+{
+  "packageId": "com.edup.tv",
+  "host": "edup.vercel.app",
+  "name": "えでゅ",
+  "launcherName": "えでゅ",
+  "display": "standalone",
+  "themeColor": "#4f46e5",
+  "navigationColor": "#000000",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://edup.vercel.app/icons/icon-512x512.png",
+  "maskableIconUrl": "https://edup.vercel.app/icons/icon-512x512.png",
+  "shortcuts": [],
+  "signingKey": {
+    "path": "edup-keystore.jks",
+    "alias": "edup"
+  },
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "splashScreenFadeOutDuration": 300,
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "orientation": "any",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "additionalTrustedOrigins": [],
+  "retainedBundles": []
+}
