@@ -11,8 +11,10 @@ type Child = {
 
 export default function ChildrenManager({
   initialChildren,
+  userId,
 }: {
   initialChildren: Child[];
+  userId: string;
 }) {
   const [children, setChildren] = useState<Child[]>(initialChildren);
   const [name, setName] = useState("");
@@ -27,7 +29,7 @@ export default function ChildrenManager({
 
     const { data, error } = await supabase
       .from("children")
-      .insert({ name: name.trim() })
+      .insert({ name: name.trim(), parent_id: userId })
       .select()
       .single();
 

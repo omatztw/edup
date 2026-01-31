@@ -30,7 +30,7 @@ export default async function DashboardPage() {
 
       <main className="mx-auto max-w-2xl px-4 py-8">
         <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <ChildrenManager initialChildren={children ?? []} />
+          <ChildrenManager initialChildren={children ?? []} userId={user.id} />
         </div>
       </main>
     </div>
