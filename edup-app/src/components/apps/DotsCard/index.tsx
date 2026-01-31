@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { checkAndAwardBadges } from "@/lib/badges";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ProgressData = {
@@ -92,7 +93,9 @@ export default function DotsCard({ childId, childName }: Props) {
     []
   );
   const [showDebug, setShowDebug] = useState(false);
+  const [newBadges, setNewBadges] = useState<{ id: string; name: string; icon: string }[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionStartRef = useRef<number>(0);
   const supabase = createClient();
 
   // 進捗読み込み
@@ -160,6 +163,8 @@ export default function DotsCard({ childId, childName }: Props) {
     setCurrentCardIndex(0);
     setDotPositions(generateDotPositions(shuffled[0]));
     setPhase("playing");
+    setNewBadges([]);
+    sessionStartRef.current = Date.now();
 
     // 最初のカードを読み上げ
     setTimeout(() => speak(`これは ${shuffled[0]} です`), 200);
@@ -180,6 +185,21 @@ export default function DotsCard({ childId, childName }: Props) {
         };
         setProgress(updated);
         saveProgress(updated);
+
+        // アクティビティログ記録
+        const duration = Math.round((Date.now() - sessionStartRef.current) / 1000);
+        supabase.from("activity_logs").insert({
+          child_id: childId,
+          app_id: "dots-card",
+          duration_seconds: duration,
+          session_data: { day: progress.currentDay, cards: cards, speed: progress.speed },
+        }).then(() => {
+          // バッジチェック
+          checkAndAwardBadges(supabase, childId, "dots-card").then((badges) => {
+            if (badges.length > 0) setNewBadges(badges);
+          });
+        });
+
         setPhase("done");
         return;
       }
@@ -260,6 +280,23 @@ export default function DotsCard({ childId, childName }: Props) {
           <p className="text-sm text-gray-500">
             {childName}さん・{progress?.currentDay}日目・今日 {progress?.todaySessions} 回完了
           </p>
+          {newBadges.length > 0 && (
+            <div className="rounded-lg border-2 border-yellow-300 bg-yellow-50 p-4">
+              <p className="mb-2 text-sm font-bold text-yellow-700">
+                バッジ獲得！
+              </p>
+              <div className="flex justify-center gap-3">
+                {newBadges.map((badge) => (
+                  <div key={badge.id} className="flex flex-col items-center">
+                    <span className="text-3xl">{badge.icon}</span>
+                    <span className="mt-1 text-xs font-medium text-gray-700">
+                      {badge.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="flex flex-col gap-3">
             <button
               onClick={startSession}
