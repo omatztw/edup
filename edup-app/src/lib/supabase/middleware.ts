@@ -46,7 +46,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // 認証済みユーザーをログイン/サインアップからリダイレクト
-  const authPaths = ["/login", "/signup"];
+  const authPaths = ["/login"];
   const isAuthPage = authPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
