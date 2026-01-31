@@ -19,7 +19,7 @@ type Props = {
 };
 
 function getDefaultProgress(): ProgressData {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalToday();
   return {
     startDate: today,
     currentDay: 1,
@@ -27,6 +27,12 @@ function getDefaultProgress(): ProgressData {
     lastSessionDate: today,
     speed: 1,
   };
+}
+
+/** ローカルタイムゾーンの今日の日付をYYYY-MM-DD形式で返す */
+function getLocalToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /** 日数からカードの開始番号を計算 */
@@ -128,16 +134,20 @@ export default function DotsCard({ childId, childName }: Props) {
         .eq("app_id", "dots-card")
         .single();
 
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLocalToday();
 
       // 今日の実際のセッション数をactivity_logsから取得
+      // created_atはUTC保存なので、ローカル日付の00:00/翌日00:00をUTCに変換して範囲指定
+      const [y, m, d] = today.split("-").map(Number);
+      const todayStart = new Date(y, m - 1, d).toISOString();
+      const tomorrowStart = new Date(y, m - 1, d + 1).toISOString();
       const { count: todayActualSessions } = await supabase
         .from("activity_logs")
         .select("id", { count: "exact", head: true })
         .eq("child_id", childId)
         .eq("app_id", "dots-card")
-        .gte("created_at", `${today}T00:00:00`)
-        .lt("created_at", `${today}T23:59:59.999`);
+        .gte("created_at", todayStart)
+        .lt("created_at", tomorrowStart);
 
       if (data?.data) {
         const p = data.data as ProgressData;
@@ -242,7 +252,7 @@ export default function DotsCard({ childId, childName }: Props) {
         const updated = {
           ...progress,
           todaySessions: progress.todaySessions + 1,
-          lastSessionDate: new Date().toISOString().slice(0, 10),
+          lastSessionDate: getLocalToday(),
         };
         setProgress(updated);
         saveProgress(updated);
