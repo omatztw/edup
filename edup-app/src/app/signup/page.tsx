@@ -42,8 +42,17 @@ export default function SignupPage() {
         <div className="w-full max-w-sm space-y-4 text-center">
           <h1 className="text-3xl font-bold text-sky-600">えでゅ</h1>
           <div className="rounded-lg bg-green-50 p-4 text-green-700">
-            <p className="font-medium">登録メールを送信しました</p>
-            <p className="mt-1 text-sm">メール内のリンクをクリックして登録を完了してください。</p>
+            <p className="font-medium">確認メールを送信しました</p>
+            <p className="mt-1 text-sm">
+              メール内のリンクをクリックして登録を完了してください。
+            </p>
+          </div>
+          <div className="rounded-lg bg-amber-50 p-4 text-amber-700">
+            <p className="text-sm font-medium">メールが届かない場合</p>
+            <p className="mt-1 text-sm">
+              迷惑メールフォルダをご確認ください。
+              送信元は <span className="font-mono text-xs">noreply@mail.app.supabase.io</span> です。
+            </p>
           </div>
           <Link href="/login" className="inline-block text-sm text-sky-600 hover:underline">
             ログインページへ
@@ -61,13 +70,13 @@ export default function SignupPage() {
           <p className="mt-2 text-sm text-gray-500">新規登録</p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
+        {error && (
+          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
 
+        <form onSubmit={handleSignup} className="space-y-4">
           <div>
             <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
               表示名
