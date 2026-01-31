@@ -130,6 +130,15 @@ export default function DotsCard({ childId, childName }: Props) {
 
       const today = new Date().toISOString().slice(0, 10);
 
+      // 今日の実際のセッション数をactivity_logsから取得
+      const { count: todayActualSessions } = await supabase
+        .from("activity_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("child_id", childId)
+        .eq("app_id", "dots-card")
+        .gte("created_at", `${today}T00:00:00`)
+        .lt("created_at", `${today}T23:59:59.999`);
+
       if (data?.data) {
         const p = data.data as ProgressData;
         let changed = false;
@@ -143,7 +152,6 @@ export default function DotsCard({ childId, childName }: Props) {
               (now.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24)
             ) + 1;
           p.currentDay = diffDays;
-          p.todaySessions = 0;
           p.lastSessionDate = today;
           // cardStartも日数差分に応じて進める
           if (p.cardStart != null) {
@@ -154,6 +162,12 @@ export default function DotsCard({ childId, childName }: Props) {
               p.cardStart = p.cardStart + autoAdvance;
             }
           }
+          changed = true;
+        }
+        // todaySessionsは常にactivity_logsの実数と同期
+        const actualCount = todayActualSessions ?? 0;
+        if (p.todaySessions !== actualCount) {
+          p.todaySessions = actualCount;
           changed = true;
         }
         // cardStartが未設定なら現在のdayから初期化
