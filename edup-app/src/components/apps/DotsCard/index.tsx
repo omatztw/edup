@@ -10,6 +10,7 @@ type ProgressData = {
   todaySessions: number;
   lastSessionDate: string;
   speed: number;
+  cardStart?: number; // カードセットの開始番号（未設定時はcurrentDayから自動計算）
 };
 
 type Props = {
@@ -28,19 +29,16 @@ function getDefaultProgress(): ProgressData {
   };
 }
 
-/** 日数からカード範囲を計算 */
-function getCardsForDay(day: number): number[] {
-  if (day <= 5) {
-    // 最初5日間: 1〜10固定
-    return Array.from({ length: 10 }, (_, i) => i + 1);
-  }
-  // 6日目以降: 毎日2枚入れ替え（低い方を外して高い方を追加）
-  const removed = (day - 5) * 2; // 取り除いた枚数
-  const start = 1 + removed;
-  const end = start + 9;
-  // 100を超えたら完了
-  if (start > 100) return [];
-  return Array.from({ length: 10 }, (_, i) => Math.min(start + i, 100)).filter(
+/** 日数からカードの開始番号を計算 */
+function getCardStartForDay(day: number): number {
+  if (day <= 5) return 1;
+  return 1 + (day - 5) * 2;
+}
+
+/** 開始番号からカード配列を生成 */
+function getCardsFromStart(cardStart: number): number[] {
+  if (cardStart > 100) return [];
+  return Array.from({ length: 10 }, (_, i) => cardStart + i).filter(
     (n) => n <= 100
   );
 }
@@ -136,15 +134,31 @@ export default function DotsCard({ childId, childName }: Props) {
         const p = data.data as ProgressData;
         // 日付が変わっていたらセッション数リセット & 日数進める
         if (p.lastSessionDate !== today) {
-          const start = new Date(p.startDate);
+          const startD = new Date(p.startDate);
           const now = new Date(today);
+          const prevDay = p.currentDay;
           const diffDays =
             Math.floor(
-              (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+              (now.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24)
             ) + 1;
           p.currentDay = diffDays;
           p.todaySessions = 0;
           p.lastSessionDate = today;
+          // cardStartも日数差分に応じて進める
+          const dayAdvanced = diffDays - prevDay;
+          if (p.cardStart != null && dayAdvanced > 0) {
+            // 最初の5日間(cardStart=1)は進めない、それ以降は1日2枚ずつ
+            const prevAutoStart = getCardStartForDay(prevDay);
+            const newAutoStart = getCardStartForDay(diffDays);
+            const autoAdvance = newAutoStart - prevAutoStart;
+            if (autoAdvance > 0) {
+              p.cardStart = p.cardStart + autoAdvance;
+            }
+          }
+        }
+        // cardStartが未設定なら現在のdayから初期化
+        if (p.cardStart == null) {
+          p.cardStart = getCardStartForDay(p.currentDay);
         }
         setProgress(p);
       } else {
@@ -171,7 +185,8 @@ export default function DotsCard({ childId, childName }: Props) {
   // カード計算
   const todayCards = useMemo(() => {
     if (!progress) return [];
-    return getCardsForDay(progress.currentDay);
+    const start = progress.cardStart ?? getCardStartForDay(progress.currentDay);
+    return getCardsFromStart(start);
   }, [progress]);
 
   const isCompleted = todayCards.length === 0;
@@ -239,22 +254,6 @@ export default function DotsCard({ childId, childName }: Props) {
   const changeSpeed = (newSpeed: number) => {
     if (!progress) return;
     const updated = { ...progress, speed: newSpeed };
-    setProgress(updated);
-    saveProgress(updated);
-  };
-
-  // 日数変更（開始日も連動して調整）
-  const changeDay = (newDay: number) => {
-    if (!progress || newDay < 1) return;
-    // 今日からnewDay日目になるようstartDateを逆算
-    const today = new Date();
-    const newStart = new Date(today);
-    newStart.setDate(today.getDate() - (newDay - 1));
-    const updated = {
-      ...progress,
-      currentDay: newDay,
-      startDate: newStart.toISOString().slice(0, 10),
-    };
     setProgress(updated);
     saveProgress(updated);
   };
@@ -426,34 +425,29 @@ export default function DotsCard({ childId, childName }: Props) {
             onClick={() => setShowDebug(!showDebug)}
             className="text-xs text-gray-400 hover:text-gray-500"
           >
-            {showDebug ? "閉じる" : "開始カードを変更"}
+            {showDebug ? "閉じる" : "カードセットを変更"}
           </button>
         </div>
         {showDebug && (
           <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm space-y-3">
             <p className="text-xs text-gray-500">
-              紙のドッツカードなどで途中まで進めていた場合、開始位置を変更できます。
+              紙のドッツカードなどで途中まで進めていた場合、表示するカードセットを変更できます。
+              翌日以降は自動的に2枚ずつ進みます。
             </p>
             <div className="flex items-center gap-2 text-sm flex-wrap">
-              <span className="text-gray-500">開始:</span>
+              <span className="text-gray-500">カード:</span>
               <select
-                value={todayCards[0] ?? 1}
+                value={progress!.cardStart ?? 1}
                 onChange={(e) => {
-                  const startNum = parseInt(e.target.value);
-                  // カード開始番号からdayを逆算
-                  let newDay: number;
-                  if (startNum <= 1) {
-                    newDay = 1;
-                  } else {
-                    newDay = Math.floor((startNum - 1) / 2) + 5;
-                  }
-                  changeDay(newDay);
+                  const newStart = parseInt(e.target.value);
+                  const updated = { ...progress!, cardStart: newStart };
+                  setProgress(updated);
+                  saveProgress(updated);
                 }}
                 className="rounded border border-gray-300 px-2 py-1 text-sm"
               >
-                <option value={1}>1〜10</option>
-                {Array.from({ length: 46 }, (_, i) => {
-                  const start = 3 + i * 2;
+                {Array.from({ length: 91 }, (_, i) => {
+                  const start = i + 1;
                   const end = Math.min(start + 9, 100);
                   if (start > 91) return null;
                   return (
@@ -463,9 +457,6 @@ export default function DotsCard({ childId, childName }: Props) {
                   );
                 })}
               </select>
-              <span className="text-xs text-gray-400">
-                ({progress!.currentDay}日目)
-              </span>
             </div>
           </div>
         )}
