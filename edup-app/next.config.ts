@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  headers: async () => [
+    {
+      source: "/.well-known/assetlinks.json",
+      headers: [
+        { key: "Content-Type", value: "application/json" },
+      ],
+    },
+  ],
 };
 
 export default nextConfig;

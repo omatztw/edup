@@ -1,0 +1,30 @@
+{
+  "name": "えでゅ - 知育アプリプラットフォーム",
+  "short_name": "えでゅ",
+  "description": "親子で楽しむ知育アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#4f46e5",
+  "background_color": "#ffffff",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["education", "kids"]
+}
