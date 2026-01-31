@@ -243,10 +243,18 @@ export default function DotsCard({ childId, childName }: Props) {
     saveProgress(updated);
   };
 
-  // 日数変更（デバッグ用）
+  // 日数変更（開始日も連動して調整）
   const changeDay = (newDay: number) => {
     if (!progress || newDay < 1) return;
-    const updated = { ...progress, currentDay: newDay };
+    // 今日からnewDay日目になるようstartDateを逆算
+    const today = new Date();
+    const newStart = new Date(today);
+    newStart.setDate(today.getDate() - (newDay - 1));
+    const updated = {
+      ...progress,
+      currentDay: newDay,
+      startDate: newStart.toISOString().slice(0, 10),
+    };
     setProgress(updated);
     saveProgress(updated);
   };
@@ -412,24 +420,26 @@ export default function DotsCard({ childId, childName }: Props) {
           )}
         </div>
 
-        {/* デバッグ設定 */}
+        {/* 開始日調整 */}
         <div className="text-center">
           <button
             onClick={() => setShowDebug(!showDebug)}
-            className="text-xs text-gray-300 hover:text-gray-400"
+            className="text-xs text-gray-400 hover:text-gray-500"
           >
-            設定
+            {showDebug ? "閉じる" : "開始日を調整"}
           </button>
         </div>
         {showDebug && (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 space-y-3">
-            <p className="text-xs font-medium text-gray-400">デバッグ設定</p>
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm space-y-3">
+            <p className="text-xs text-gray-500">
+              紙のドッツカードなどで途中まで進めていた場合、現在の日数を調整できます。
+            </p>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-gray-500">日数:</span>
               <button
                 onClick={() => changeDay(progress!.currentDay - 1)}
                 disabled={progress!.currentDay <= 1}
-                className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300 disabled:opacity-30"
+                className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 disabled:opacity-30"
               >
                 -
               </button>
@@ -442,26 +452,13 @@ export default function DotsCard({ childId, childName }: Props) {
               />
               <button
                 onClick={() => changeDay(progress!.currentDay + 1)}
-                className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300"
+                className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200"
               >
                 +
               </button>
               <span className="text-xs text-gray-400">
                 → {todayCards.length > 0 ? `${todayCards[0]}〜${todayCards[todayCards.length - 1]}` : "完了"}
               </span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500">セッション数リセット:</span>
-              <button
-                onClick={() => {
-                  const updated = { ...progress!, todaySessions: 0 };
-                  setProgress(updated);
-                  saveProgress(updated);
-                }}
-                className="rounded bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300"
-              >
-                0に戻す
-              </button>
             </div>
           </div>
         )}
