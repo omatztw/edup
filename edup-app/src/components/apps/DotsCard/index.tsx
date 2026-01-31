@@ -468,6 +468,22 @@ export default function DotsCard({ childId, childName }: Props) {
                 })}
               </select>
             </div>
+            {progress!.todaySessions > 0 && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-500">今日の回数:</span>
+                <span className="text-gray-600">{progress!.todaySessions}回</span>
+                <button
+                  onClick={() => {
+                    const updated = { ...progress!, todaySessions: 0 };
+                    setProgress(updated);
+                    saveProgress(updated);
+                  }}
+                  className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600 hover:bg-gray-200"
+                >
+                  リセット
+                </button>
+              </div>
+            )}
           </div>
         )}
 
