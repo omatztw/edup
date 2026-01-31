@@ -132,6 +132,7 @@ export default function DotsCard({ childId, childName }: Props) {
 
       if (data?.data) {
         const p = data.data as ProgressData;
+        let changed = false;
         // 日付が変わっていたらセッション数リセット & 日数進める
         if (p.lastSessionDate !== today) {
           const startD = new Date(p.startDate);
@@ -145,9 +146,7 @@ export default function DotsCard({ childId, childName }: Props) {
           p.todaySessions = 0;
           p.lastSessionDate = today;
           // cardStartも日数差分に応じて進める
-          const dayAdvanced = diffDays - prevDay;
-          if (p.cardStart != null && dayAdvanced > 0) {
-            // 最初の5日間(cardStart=1)は進めない、それ以降は1日2枚ずつ
+          if (p.cardStart != null) {
             const prevAutoStart = getCardStartForDay(prevDay);
             const newAutoStart = getCardStartForDay(diffDays);
             const autoAdvance = newAutoStart - prevAutoStart;
@@ -155,12 +154,23 @@ export default function DotsCard({ childId, childName }: Props) {
               p.cardStart = p.cardStart + autoAdvance;
             }
           }
+          changed = true;
         }
         // cardStartが未設定なら現在のdayから初期化
         if (p.cardStart == null) {
           p.cardStart = getCardStartForDay(p.currentDay);
+          changed = true;
         }
         setProgress(p);
+        // 変更があればDBにも即保存
+        if (changed) {
+          await supabase
+            .from("progress")
+            .upsert(
+              { child_id: childId, app_id: "dots-card", data: p },
+              { onConflict: "child_id,app_id" }
+            );
+        }
       } else {
         setProgress(getDefaultProgress());
       }
