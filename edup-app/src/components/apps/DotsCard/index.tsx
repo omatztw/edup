@@ -86,7 +86,7 @@ function speak(text: string) {
   if (window.speechSynthesis) {
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = "ja-JP";
-    utter.rate = 1.5;
+    utter.rate = 1.2;
     utter.onerror = () => playMp3Fallback(num);
     window.speechSynthesis.speak(utter);
     return;
