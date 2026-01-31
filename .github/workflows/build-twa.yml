@@ -26,7 +26,7 @@ jobs:
           java-version: 17
 
       - name: Install Bubblewrap CLI
-        run: npm install -g @nicedoc/nicedoc.io@latest
+        run: npm install -g @bubblewrap/cli
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > edup-keystore.jks
