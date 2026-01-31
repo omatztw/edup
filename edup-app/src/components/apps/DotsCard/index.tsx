@@ -44,24 +44,29 @@ function getCardsForDay(day: number): number[] {
   );
 }
 
+// ドットは常に同じサイズ（100個収まる大きさ）
+const DOT_SIZE_PX = 12;
+// カード内のパディング（%）。ドットが端にかからないよう確保
+const PAD = 6;
+// 衝突判定の最小距離（%）。DOT_SIZE_PX / カードサイズ(~500px) * 100 ≒ 2.4 に余裕を持たせる
+const MIN_DIST = 3.5;
+
 /** ドッツをランダム配置 */
 function generateDotPositions(
   count: number
 ): { x: number; y: number }[] {
   const positions: { x: number; y: number }[] = [];
+  const range = 100 - PAD * 2;
   for (let i = 0; i < count; i++) {
-    // 衝突回避を試みるがシンプルに
     let x: number, y: number;
     let attempts = 0;
     do {
-      x = 8 + Math.random() * 84; // %
-      y = 8 + Math.random() * 84;
+      x = PAD + Math.random() * range;
+      y = PAD + Math.random() * range;
       attempts++;
     } while (
-      attempts < 50 &&
-      positions.some(
-        (p) => Math.hypot(p.x - x, p.y - y) < Math.max(4, 80 / Math.sqrt(count))
-      )
+      attempts < 100 &&
+      positions.some((p) => Math.hypot(p.x - x, p.y - y) < MIN_DIST)
     );
     positions.push({ x, y });
   }
@@ -205,7 +210,6 @@ export default function DotsCard({ childId, childName }: Props) {
 
   // フラッシュ中: 全画面表示
   if (phase === "playing") {
-    const dotSize = Math.max(8, 40 / Math.sqrt(cards[currentCardIndex] || 1));
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
         <div className="relative h-[80vmin] w-[80vmin] max-h-[500px] max-w-[500px] rounded-2xl bg-white shadow-lg border-2 border-gray-100">
@@ -216,8 +220,8 @@ export default function DotsCard({ childId, childName }: Props) {
               style={{
                 left: `${pos.x}%`,
                 top: `${pos.y}%`,
-                width: `${dotSize}px`,
-                height: `${dotSize}px`,
+                width: `${DOT_SIZE_PX}px`,
+                height: `${DOT_SIZE_PX}px`,
                 transform: "translate(-50%, -50%)",
               }}
             />
