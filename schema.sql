@@ -3,7 +3,7 @@
 – Supabase DBスキーマ
 – ================================================
 
-– 親アカウント（Supabase Authと連携）
+- 親アカウント（Supabase Authと連携）
 create table if not exists profiles (
 id uuid references auth.users on delete cascade primary key,
 email text,
