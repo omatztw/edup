@@ -32,8 +32,10 @@ jobs:
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > edup-keystore.jks
 
       - name: Initialize TWA project
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
-          echo "n" | bubblewrap init \
+          printf '%s\n' "n" "$JAVA_HOME" "n" | bubblewrap init \
             --manifest="https://${{ vars.TWA_HOST || 'edup-nine.vercel.app' }}/manifest.json" \
             --directory=./twa-output
 
@@ -42,8 +44,9 @@ jobs:
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
-          echo "n" | bubblewrap build
+          printf '%s\n' "n" "$JAVA_HOME" "n" | bubblewrap build
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
