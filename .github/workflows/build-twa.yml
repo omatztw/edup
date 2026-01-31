@@ -30,8 +30,12 @@ jobs:
 
       - name: Configure Bubblewrap JDK/SDK paths
         run: |
+          SDK_PATH="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "Using JAVA_HOME=$JAVA_HOME"
+          echo "Using Android SDK=$SDK_PATH"
           mkdir -p "$HOME/.llama-pack"
-          echo '{"jdkPath":"'"$JAVA_HOME"'","androidSdkPath":"'"$ANDROID_HOME"'"}' > "$HOME/.llama-pack/llama-pack-config.json"
+          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$SDK_PATH\"}" > "$HOME/.llama-pack/llama-pack-config.json"
+          cat "$HOME/.llama-pack/llama-pack-config.json"
 
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > edup-keystore.jks
