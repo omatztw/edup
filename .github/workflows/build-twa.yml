@@ -28,17 +28,14 @@ jobs:
       - name: Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
-      - name: Configure Bubblewrap JDK/SDK paths
-        run: |
-          SDK_PATH="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
-          echo "Using JAVA_HOME=$JAVA_HOME"
-          echo "Using Android SDK=$SDK_PATH"
-          mkdir -p "$HOME/.llama-pack"
-          echo "{\"jdkPath\":\"$JAVA_HOME\",\"androidSdkPath\":\"$SDK_PATH\"}" > "$HOME/.llama-pack/llama-pack-config.json"
-          cat "$HOME/.llama-pack/llama-pack-config.json"
-
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > edup-keystore.jks
+
+      - name: Let Bubblewrap install its own JDK and Android SDK
+        run: |
+          mkdir -p /tmp/bw-init && cd /tmp/bw-init
+          printf 'Y\nY\n' | bubblewrap init --manifest="https://edup-nine.vercel.app/manifest.json" || true
+          cat "$HOME/.llama-pack/llama-pack-config.json" || true
 
       - name: Build AAB
         env:
