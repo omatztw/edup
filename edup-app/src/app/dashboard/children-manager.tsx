@@ -89,14 +89,28 @@ export default function ChildrenManager({
       ) : (
         <div className="space-y-2">
           {children.map((child) => (
-            <a
+            <div
               key={child.id}
-              href={`/play/dots-card?child=${child.id}`}
-              className="flex items-center justify-between rounded-lg border bg-white p-4 transition hover:border-sky-300 hover:shadow-sm"
+              className="rounded-lg border bg-white p-4 transition hover:border-sky-300 hover:shadow-sm"
             >
-              <span className="font-medium text-gray-800">{child.name}</span>
-              <span className="text-sm text-sky-500">ドッツカード →</span>
-            </a>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-800">{child.name}</span>
+                <a
+                  href={`/children/${child.id}`}
+                  className="text-xs text-gray-400 hover:text-sky-500"
+                >
+                  スケジュール・バッジ →
+                </a>
+              </div>
+              <div className="mt-2 flex gap-2">
+                <a
+                  href={`/play/dots-card?child=${child.id}`}
+                  className="rounded-lg bg-sky-50 px-3 py-1.5 text-sm text-sky-600 hover:bg-sky-100"
+                >
+                  ドッツカード
+                </a>
+              </div>
+            </div>
           ))}
         </div>
       )}
