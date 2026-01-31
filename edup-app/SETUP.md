@@ -7,7 +7,7 @@
    - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon public` キー → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-3. **SQL Editor** で `supabase/migrations/` 内のSQLを順番に実行:
+3. **SQL Editor** でリポジトリルートの `supabase/migrations/` 内のSQLを順番に実行:
    - `00001_create_schema.sql`
    - `00002_update_schema.sql`
 
@@ -18,7 +18,8 @@
 ## 2. ローカル開発
 
 ```bash
-cd edup-app
+git clone https://github.com/omatztw/edup.git
+cd edup/edup-app
 
 # .env.local を作成（.env.local.example を参考）
 cp .env.local.example .env.local
@@ -41,8 +42,8 @@ vercel
 
 ### 方法B: GitHub連携
 
-1. [vercel.com](https://vercel.com) でGitHubリポジトリをインポート
-2. **Root Directory** を `edup-app` に設定
+1. [vercel.com](https://vercel.com) で `omatztw/edup` リポジトリをインポート
+2. **Root Directory** を `edup-app` に設定（リポジトリルートではなくサブディレクトリ）
 3. 環境変数を設定:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
