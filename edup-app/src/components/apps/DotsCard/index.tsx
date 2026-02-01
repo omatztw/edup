@@ -78,9 +78,10 @@ function generateDotPositions(
   return positions;
 }
 
-/** 読み上げ（speechSynthesis優先、非対応時はGoogle TTS mp3にフォールバック） */
-function speak(text: string) {
-  if (typeof window === "undefined") return;
+/** 読み上げ（speechSynthesis優先、非対応時はGoogle TTS mp3にフォールバック）
+ *  Promiseを返し、発話完了（またはエラー）時にresolveする */
+function speak(text: string): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
 
   // テキストから数字を抽出
   const match = text.match(/(\d+)/);
@@ -88,25 +89,34 @@ function speak(text: string) {
 
   // speechSynthesisが使えればそちらを優先（レイテンシが低い）
   if (window.speechSynthesis) {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "ja-JP";
-    utter.rate = 1.2;
-    utter.onerror = () => playMp3Fallback(num);
-    window.speechSynthesis.speak(utter);
-    return;
+    return new Promise<void>((resolve) => {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "ja-JP";
+      utter.rate = 1.2;
+      utter.onend = () => resolve();
+      utter.onerror = () => {
+        playMp3Fallback(num).then(resolve);
+      };
+      window.speechSynthesis.speak(utter);
+    });
   }
 
   // speechSynthesis非対応: Google TTS mp3を再生
-  playMp3Fallback(num);
+  return playMp3Fallback(num);
 }
 
 /** mp3フォールバック（Google TTS生成済み） */
-function playMp3Fallback(num: number | null) {
+function playMp3Fallback(num: number | null): Promise<void> {
   if (num && num >= 1 && num <= 100) {
-    const audio = new Audio(`/audio/dots/${num}.mp3`);
-    audio.playbackRate = 1.5;
-    audio.play().catch(() => {});
+    return new Promise<void>((resolve) => {
+      const audio = new Audio(`/audio/dots/${num}.mp3`);
+      audio.playbackRate = 1.5;
+      audio.onended = () => resolve();
+      audio.onerror = () => resolve();
+      audio.play().catch(() => resolve());
+    });
   }
+  return Promise.resolve();
 }
 
 export default function DotsCard({ childId, childName }: Props) {
@@ -121,6 +131,8 @@ export default function DotsCard({ childId, childName }: Props) {
   const [showDebug, setShowDebug] = useState(false);
   const [newBadges, setNewBadges] = useState<{ id: string; name: string; icon: string }[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelledRef = useRef(false);
+  const speechPromiseRef = useRef<Promise<void>>(Promise.resolve());
   const sessionStartRef = useRef<number>(0);
   const supabase = createClient();
 
@@ -219,15 +231,21 @@ export default function DotsCard({ childId, childName }: Props) {
     setNewBadges([]);
     sessionStartRef.current = Date.now();
 
-    // 最初のカードを読み上げ
-    setTimeout(() => speak(`これは ${shuffled[0]} です`), 200);
+    // 最初のカードを読み上げ（少し待ってから）
+    setTimeout(() => {
+      speechPromiseRef.current = speak(`これは ${shuffled[0]} です`);
+    }, 200);
   }, [progress, todayCards]);
 
-  // 次のカードへ自動進行
+  // 次のカードへ自動進行（表示時間経過 → 音声完了の両方を待つ）
   useEffect(() => {
     if (phase !== "playing" || !progress) return;
 
-    timerRef.current = setTimeout(() => {
+    cancelledRef.current = false;
+
+    const advanceToNext = () => {
+      if (cancelledRef.current) return;
+
       const nextIndex = currentCardIndex + 1;
       if (nextIndex >= cards.length) {
         // セッション完了
@@ -258,10 +276,20 @@ export default function DotsCard({ childId, childName }: Props) {
       }
       setCurrentCardIndex(nextIndex);
       setDotPositions(generateDotPositions(cards[nextIndex]));
-      speak(`これは ${cards[nextIndex]} です`);
-    }, progress.speed * 1000);
+      speechPromiseRef.current = speak(`これは ${cards[nextIndex]} です`);
+    };
+
+    // 表示時間と音声完了の両方を待ってから次へ進む
+    const timerPromise = new Promise<void>((resolve) => {
+      timerRef.current = setTimeout(resolve, progress.speed * 1000);
+    });
+
+    Promise.all([timerPromise, speechPromiseRef.current]).then(() => {
+      advanceToNext();
+    });
 
     return () => {
+      cancelledRef.current = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [phase, currentCardIndex, cards, progress, saveProgress]);
