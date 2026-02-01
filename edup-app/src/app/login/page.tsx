@@ -111,11 +111,10 @@ function LoginContent() {
             });
 
             if (sessionRes.ok) {
-              const { email, token_hash } = await sessionRes.json();
+              const { token_hash } = await sessionRes.json();
               // verifyOtpでSupabaseセッションを確立
               const { error: verifyError } = await supabase.auth.verifyOtp({
-                email,
-                token: token_hash,
+                token_hash,
                 type: "magiclink",
               });
 
