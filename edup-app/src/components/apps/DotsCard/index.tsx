@@ -78,42 +78,40 @@ function generateDotPositions(
   return positions;
 }
 
-/** 読み上げ（speechSynthesis優先、非対応時はGoogle TTS mp3にフォールバック）
+/** 読み上げ（gTTS MP3優先、非対応時はspeechSynthesisにフォールバック）
  *  Promiseを返し、発話完了（またはエラー）時にresolveする */
 function speak(text: string): Promise<void> {
   if (typeof window === "undefined") return Promise.resolve();
 
-  // テキストから数字を抽出
   const match = text.match(/(\d+)/);
   const num = match ? parseInt(match[1]) : null;
 
-  // speechSynthesisが使えればそちらを優先（レイテンシが低い）
-  if (window.speechSynthesis) {
+  // MP3優先（gTTSで「これはNです」を生成済み）
+  if (num && num >= 1 && num <= 100) {
+    return new Promise<void>((resolve) => {
+      const audio = new Audio(`/audio/dots/${num}.mp3`);
+      audio.onended = () => resolve();
+      audio.onerror = () => {
+        // MP3再生失敗時はspeechSynthesisにフォールバック
+        speakFallback(text).then(resolve);
+      };
+      audio.play().catch(() => speakFallback(text).then(resolve));
+    });
+  }
+
+  return speakFallback(text);
+}
+
+/** speechSynthesisフォールバック */
+function speakFallback(text: string): Promise<void> {
+  if (typeof window !== "undefined" && window.speechSynthesis) {
     return new Promise<void>((resolve) => {
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = "ja-JP";
       utter.rate = 1.2;
       utter.onend = () => resolve();
-      utter.onerror = () => {
-        playMp3Fallback(num).then(resolve);
-      };
+      utter.onerror = () => resolve();
       window.speechSynthesis.speak(utter);
-    });
-  }
-
-  // speechSynthesis非対応: Google TTS mp3を再生
-  return playMp3Fallback(num);
-}
-
-/** mp3フォールバック（Google TTS生成済み） */
-function playMp3Fallback(num: number | null): Promise<void> {
-  if (num && num >= 1 && num <= 100) {
-    return new Promise<void>((resolve) => {
-      const audio = new Audio(`/audio/dots/${num}.mp3`);
-      audio.playbackRate = 1.5;
-      audio.onended = () => resolve();
-      audio.onerror = () => resolve();
-      audio.play().catch(() => resolve());
     });
   }
   return Promise.resolve();
