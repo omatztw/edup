@@ -46,8 +46,8 @@ jobs:
 
       - name: Generate TWA project with Bubblewrap
         run: |
-          # Feed Enter keys to accept all defaults from twa-manifest.json
-          yes '' | bubblewrap init --manifest="https://edup-nine.vercel.app/manifest.json" || true
+          # Send enough empty lines to accept all defaults, then EOF
+          printf '\n%.0s' {1..50} | bubblewrap init --manifest="https://edup-nine.vercel.app/manifest.json"
           # Verify project was generated
           test -f build.gradle
 
