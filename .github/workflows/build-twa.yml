@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - "edup-app/twa/**"
       - "edup-app/twa-manifest.json"
 
 jobs:
@@ -11,14 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: edup-app
+        working-directory: edup-app/twa
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
 
       - uses: actions/setup-java@v4
         with:
@@ -28,38 +25,21 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > edup-keystore.jks
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/edup-keystore.jks
 
-      - name: Configure Bubblewrap to use system JDK and SDK
-        run: |
-          mkdir -p "$HOME/.llama-pack"
-          cat > "$HOME/.llama-pack/llama-pack-config.json" <<EOF
-          {
-            "jdkPath": "$JAVA_HOME",
-            "androidSdkPath": "$ANDROID_HOME"
-          }
-          EOF
-
-      - name: Generate TWA project with Bubblewrap
-        run: |
-          # Send enough empty lines to accept all defaults, then EOF
-          printf '\n%.0s' {1..50} | bubblewrap init --manifest="https://edup-nine.vercel.app/manifest.json"
-          # Verify project was generated
-          test -f build.gradle
-
-      - name: Build AAB with Gradle
-        run: ./gradlew bundleRelease
+      - name: Build AAB
+        run: gradle bundleRelease
 
       - name: Sign AAB
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore edup-keystore.jks \
+            -keystore app/edup-keystore.jks \
             -storepass "$KEYSTORE_PASSWORD" \
             -keypass "$KEYSTORE_PASSWORD" \
             app/build/outputs/bundle/release/app-release.aab \
@@ -69,5 +49,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: edup-tv-${{ github.sha }}
-          path: edup-app/app/build/outputs/bundle/release/app-release.aab
+          path: edup-app/twa/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
