@@ -131,16 +131,28 @@ function getDefaultProgress(): ProgressData {
   };
 }
 
-/** Web Speech API で英語読み上げ */
+/** MP3ファイルで英語読み上げ（ブラウザ非依存） */
+let currentAudio: HTMLAudioElement | null = null;
 function speakEnglish(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  // 前の読み上げをキャンセル
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "en-US";
-  utter.rate = 0.85;
-  utter.pitch = 1.1;
-  window.speechSynthesis.speak(utter);
+  if (typeof window === "undefined") return;
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  const filename = text.replace(/ /g, "-") + ".mp3";
+  const audio = new Audio(`/audio/english-flash/${filename}`);
+  currentAudio = audio;
+  audio.play().catch(() => {
+    // MP3再生失敗時はWeb Speech APIにフォールバック
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      utter.rate = 0.85;
+      utter.pitch = 1.1;
+      window.speechSynthesis.speak(utter);
+    }
+  });
 }
 
 export default function EnglishFlash({ childId, childName }: Props) {
