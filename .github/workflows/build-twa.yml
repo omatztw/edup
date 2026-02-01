@@ -33,8 +33,8 @@ jobs:
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/edup-keystore.jks
 
-      - name: Build AAB
-        run: gradle bundleRelease
+      - name: Build AAB and APK
+        run: gradle bundleRelease assembleRelease
 
       - name: Sign AAB
         env:
@@ -47,9 +47,32 @@ jobs:
             app/build/outputs/bundle/release/app-release.aab \
             edup
 
+      - name: Sign APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          # Align the APK
+          ${ANDROID_HOME}/build-tools/$(ls ${ANDROID_HOME}/build-tools/ | head -1)/zipalign -v 4 \
+            app/build/outputs/apk/release/app-release-unsigned.apk \
+            app/build/outputs/apk/release/app-release.apk
+          # Sign with apksigner
+          ${ANDROID_HOME}/build-tools/$(ls ${ANDROID_HOME}/build-tools/ | head -1)/apksigner sign \
+            --ks app/edup-keystore.jks \
+            --ks-key-alias edup \
+            --ks-pass "pass:$KEYSTORE_PASSWORD" \
+            --key-pass "pass:$KEYSTORE_PASSWORD" \
+            app/build/outputs/apk/release/app-release.apk
+
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: edup-tv-${{ github.sha }}
+          name: edup-tv-aab-${{ github.sha }}
           path: edup-app/twa/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edup-tv-apk-${{ github.sha }}
+          path: edup-app/twa/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
