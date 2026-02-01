@@ -102,12 +102,18 @@ export default function ChildrenManager({
                   スケジュール・バッジ →
                 </a>
               </div>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 <a
                   href={`/play/dots-card?child=${child.id}`}
                   className="rounded-lg bg-sky-50 px-3 py-1.5 text-sm text-sky-600 hover:bg-sky-100"
                 >
                   ドッツカード
+                </a>
+                <a
+                  href={`/play/english-flash?child=${child.id}`}
+                  className="rounded-lg bg-emerald-50 px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-100"
+                >
+                  英語フラッシュ
                 </a>
               </div>
             </div>
