@@ -90,6 +90,7 @@ function speak(text: string): Promise<void> {
   if (num && num >= 1 && num <= 100) {
     return new Promise<void>((resolve) => {
       const audio = new Audio(`/audio/dots/${num}.mp3`);
+      audio.playbackRate = 1.5;
       audio.onended = () => resolve();
       audio.onerror = () => {
         // MP3再生失敗時はspeechSynthesisにフォールバック
