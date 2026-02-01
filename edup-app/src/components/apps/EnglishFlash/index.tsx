@@ -179,28 +179,42 @@ function getDefaultProgress(): ProgressData {
   };
 }
 
-/** MP3ファイルで英語読み上げ（ブラウザ非依存） */
+/** MP3ファイルで英語読み上げ（ブラウザ非依存）
+ *  Promiseを返し、発話完了（またはエラー）時にresolveする */
 let currentAudio: HTMLAudioElement | null = null;
-function speakEnglish(text: string) {
-  if (typeof window === "undefined") return;
+function speakEnglish(text: string): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
   if (currentAudio) {
     currentAudio.pause();
     currentAudio = null;
   }
   const filename = text.replace(/ /g, "-") + ".mp3";
-  const audio = new Audio(`/audio/english-flash/${filename}`);
-  currentAudio = audio;
-  audio.play().catch(() => {
-    // MP3再生失敗時はWeb Speech APIにフォールバック
-    if (window.speechSynthesis) {
+  return new Promise<void>((resolve) => {
+    const audio = new Audio(`/audio/english-flash/${filename}`);
+    currentAudio = audio;
+    audio.onended = () => resolve();
+    audio.onerror = () => {
+      speakEnglishFallback(text).then(resolve);
+    };
+    audio.play().catch(() => speakEnglishFallback(text).then(resolve));
+  });
+}
+
+/** speechSynthesisフォールバック */
+function speakEnglishFallback(text: string): Promise<void> {
+  if (typeof window !== "undefined" && window.speechSynthesis) {
+    return new Promise<void>((resolve) => {
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = "en-US";
       utter.rate = 0.85;
       utter.pitch = 1.1;
+      utter.onend = () => resolve();
+      utter.onerror = () => resolve();
       window.speechSynthesis.speak(utter);
-    }
-  });
+    });
+  }
+  return Promise.resolve();
 }
 
 export default function EnglishFlash({ childId, childName }: Props) {
@@ -213,6 +227,8 @@ export default function EnglishFlash({ childId, childName }: Props) {
     { id: string; name: string; icon: string }[]
   >([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelledRef = useRef(false);
+  const speechPromiseRef = useRef<Promise<void>>(Promise.resolve());
   const sessionStartRef = useRef<number>(0);
   const supabase = createClient();
 
@@ -290,15 +306,23 @@ export default function EnglishFlash({ childId, childName }: Props) {
     setPhase("playing");
     setNewBadges([]);
     sessionStartRef.current = Date.now();
+    cancelledRef.current = false;
 
-    setTimeout(() => speakEnglish(sessionCards[0].word), 300);
+    // 最初のカードを読み上げ（少し待ってから）
+    setTimeout(() => {
+      speechPromiseRef.current = speakEnglish(sessionCards[0].word);
+    }, 300);
   }, [progress, pickCards]);
 
-  // 自動進行
+  // 次のカードへ自動進行（表示時間経過 → 音声完了の両方を待つ）
   useEffect(() => {
     if (phase !== "playing" || !progress) return;
 
-    timerRef.current = setTimeout(() => {
+    cancelledRef.current = false;
+
+    const advanceToNext = () => {
+      if (cancelledRef.current) return;
+
       const nextIndex = currentCardIndex + 1;
       if (nextIndex >= cards.length) {
         // セッション完了
@@ -347,10 +371,20 @@ export default function EnglishFlash({ childId, childName }: Props) {
         return;
       }
       setCurrentCardIndex(nextIndex);
-      speakEnglish(cards[nextIndex].word);
-    }, progress.speed * 1000);
+      speechPromiseRef.current = speakEnglish(cards[nextIndex].word);
+    };
+
+    // 表示時間と音声完了の両方を待ってから次へ進む
+    const timerPromise = new Promise<void>((resolve) => {
+      timerRef.current = setTimeout(resolve, progress.speed * 1000);
+    });
+
+    Promise.all([timerPromise, speechPromiseRef.current]).then(() => {
+      advanceToNext();
+    });
 
     return () => {
+      cancelledRef.current = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [phase, currentCardIndex, cards, progress, saveProgress, childId, supabase]);
