@@ -2,15 +2,23 @@
 
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
+import QRCode from "qrcode";
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [qrToken, setQrToken] = useState("");
+  const [qrStatus, setQrStatus] = useState<"loading" | "ready" | "approved" | "expired" | "error">("loading");
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get("next");
   const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,7 +37,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(nextUrl || "/dashboard");
     router.refresh();
   };
 
@@ -40,7 +48,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback${nextUrl ? `?next=${encodeURIComponent(nextUrl)}` : ""}`,
       },
     });
 
@@ -48,6 +56,82 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     }
+  };
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  }, []);
+
+  const startQRLogin = useCallback(async () => {
+    setQrStatus("loading");
+    setShowQR(true);
+    stopPolling();
+
+    try {
+      const res = await fetch("/api/tv-login", { method: "POST" });
+      if (!res.ok) throw new Error("Failed to create session");
+      const { token } = await res.json();
+      setQrToken(token);
+
+      const url = `${window.location.origin}/tv-login/approve?token=${token}`;
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: 256,
+        margin: 2,
+        color: { dark: "#0ea5e9", light: "#ffffff" },
+      });
+      setQrDataUrl(dataUrl);
+      setQrStatus("ready");
+
+      // ポーリング開始（3秒間隔、5分でタイムアウト）
+      const startTime = Date.now();
+      pollingRef.current = setInterval(async () => {
+        if (Date.now() - startTime > 5 * 60 * 1000) {
+          stopPolling();
+          setQrStatus("expired");
+          return;
+        }
+
+        try {
+          const pollRes = await fetch(`/api/tv-login?token=${token}`);
+          if (!pollRes.ok) return;
+          const data = await pollRes.json();
+
+          if (data.status === "approved") {
+            stopPolling();
+            setQrStatus("approved");
+
+            // 承認されたのでセッションを確立
+            const sessionRes = await fetch("/api/tv-login/session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            });
+
+            if (sessionRes.ok) {
+              // ダッシュボードにリダイレクト
+              router.push("/dashboard");
+              router.refresh();
+            }
+          }
+        } catch {
+          // ポーリングエラーは無視
+        }
+      }, 3000);
+    } catch {
+      setQrStatus("error");
+    }
+  }, [stopPolling, router]);
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, [stopPolling]);
+
+  const closeQR = () => {
+    setShowQR(false);
+    stopPolling();
   };
 
   return (
@@ -125,6 +209,23 @@ export default function LoginPage() {
           Googleでログイン
         </button>
 
+        <button
+          onClick={startQRLogin}
+          disabled={loading}
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white py-3 text-base font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+        >
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="3" height="3" />
+            <rect x="18" y="14" width="3" height="3" />
+            <rect x="14" y="18" width="3" height="3" />
+            <rect x="18" y="18" width="3" height="3" />
+          </svg>
+          QRコードでログイン
+        </button>
+
         <p className="text-center text-sm text-gray-500">
           アカウントをお持ちでない方は{" "}
           <Link href="/signup" className="font-medium text-sky-600 hover:underline">
@@ -132,6 +233,89 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+
+      {/* QRコードモーダル */}
+      {showQR && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 space-y-4 text-center">
+            <h2 className="text-lg font-bold text-gray-800">
+              QRコードでログイン
+            </h2>
+
+            {qrStatus === "loading" && (
+              <p className="text-gray-500">QRコードを生成中...</p>
+            )}
+
+            {qrStatus === "ready" && (
+              <>
+                <p className="text-sm text-gray-500">
+                  スマホのカメラでこのQRコードを読み取ってください
+                </p>
+                <div className="flex justify-center">
+                  <img src={qrDataUrl} alt="QRコード" className="h-64 w-64" />
+                </div>
+                <p className="text-xs text-gray-400">
+                  5分間有効です
+                </p>
+              </>
+            )}
+
+            {qrStatus === "approved" && (
+              <div className="space-y-2">
+                <p className="text-green-600 font-medium">
+                  ログインが承認されました
+                </p>
+                <p className="text-sm text-gray-500">リダイレクト中...</p>
+              </div>
+            )}
+
+            {qrStatus === "expired" && (
+              <div className="space-y-3">
+                <p className="text-amber-600">QRコードの有効期限が切れました</p>
+                <button
+                  onClick={startQRLogin}
+                  className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+                >
+                  再生成
+                </button>
+              </div>
+            )}
+
+            {qrStatus === "error" && (
+              <div className="space-y-3">
+                <p className="text-red-600">エラーが発生しました</p>
+                <button
+                  onClick={startQRLogin}
+                  className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-600"
+                >
+                  再試行
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={closeQR}
+              className="w-full rounded-lg border border-gray-300 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-gray-500">読み込み中...</p>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
