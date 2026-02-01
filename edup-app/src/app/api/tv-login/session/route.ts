@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-// TV側: 承認済みセッションからサインイン用のマジックリンクを取得
+// TV側: 承認済みセッションからセッションCookieを確立
 export async function POST(request: Request) {
   const { token } = await request.json();
 
@@ -20,13 +20,13 @@ export async function POST(request: Request) {
 
   const supabase = await createClient();
 
-  const { data: session } = await supabase
+  const { data: tvSession } = await supabase
     .from("tv_login_sessions")
     .select("status, user_id")
     .eq("token", token)
     .single();
 
-  if (!session || session.status !== "approved" || !session.user_id) {
+  if (!tvSession || tvSession.status !== "approved" || !tvSession.user_id) {
     return NextResponse.json({ error: "Invalid session" }, { status: 400 });
   }
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   );
 
   const { data: userData, error: userError } =
-    await adminClient.auth.admin.getUserById(session.user_id);
+    await adminClient.auth.admin.getUserById(tvSession.user_id);
 
   if (userError || !userData.user?.email) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -57,16 +57,40 @@ export async function POST(request: Request) {
       email: userData.user.email,
     });
 
-  if (linkError || !linkData.properties?.hashed_token) {
+  if (linkError || !linkData.properties?.action_link) {
     return NextResponse.json(
       { error: "Failed to generate login token" },
       { status: 500 }
     );
   }
 
-  // OTP(hashed_token)を返し、TV側でverifyOtpを呼んでセッション確立
-  return NextResponse.json({
-    email: userData.user.email,
-    token_hash: linkData.properties.hashed_token,
+  // action_linkからcodeパラメータを抽出
+  const actionUrl = new URL(linkData.properties.action_link);
+  // Supabaseのaction_linkはリダイレクト先にcodeが含まれる場合と
+  // token_hash + typeがクエリパラメータに含まれる場合がある
+  const tokenHash = actionUrl.searchParams.get("token_hash") ||
+    actionUrl.hash?.match(/token_hash=([^&]+)/)?.[1];
+  const type = actionUrl.searchParams.get("type") || "magiclink";
+
+  if (!tokenHash) {
+    return NextResponse.json(
+      { error: "Failed to extract token" },
+      { status: 500 }
+    );
+  }
+
+  // サーバー側のSupabaseクライアントでverifyOtpしてCookieセッションを確立
+  const { error: verifyError } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash,
+    type: type as "magiclink",
   });
+
+  if (verifyError) {
+    return NextResponse.json(
+      { error: "Session verification failed: " + verifyError.message },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ success: true });
 }

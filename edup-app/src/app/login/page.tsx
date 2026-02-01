@@ -111,20 +111,11 @@ function LoginContent() {
             });
 
             if (sessionRes.ok) {
-              const { email, token_hash } = await sessionRes.json();
-              // verifyOtpでSupabaseセッションを確立
-              const { error: verifyError } = await supabase.auth.verifyOtp({
-                email,
-                token: token_hash,
-                type: "magiclink",
-              });
-
-              if (!verifyError) {
-                router.push("/dashboard");
-                router.refresh();
-              } else {
-                setQrStatus("error");
-              }
+              // サーバー側でセッションCookieが確立された
+              router.push("/dashboard");
+              router.refresh();
+            } else {
+              setQrStatus("error");
             }
           }
         } catch {
