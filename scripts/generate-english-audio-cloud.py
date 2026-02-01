@@ -16,17 +16,30 @@ import urllib.request
 import urllib.error
 
 WORDS = [
+    # 動物
     "dog", "cat", "bird", "fish", "rabbit", "bear", "elephant", "lion",
     "monkey", "pig", "cow", "horse", "sheep", "chicken", "duck", "frog",
-    "turtle", "penguin", "whale", "butterfly",
+    "turtle", "penguin", "whale", "butterfly", "giraffe", "zebra", "snake",
+    "owl", "dolphin",
+    # 食べ物
     "apple", "banana", "orange", "grape", "strawberry", "watermelon",
     "peach", "cherry", "bread", "rice", "egg", "milk", "cake", "cookie",
     "ice cream", "pizza", "tomato", "corn", "carrot", "lemon",
+    "chocolate", "cheese", "donut", "pineapple", "mushroom",
+    # もの
     "car", "bus", "train", "airplane", "bicycle", "boat", "rocket",
     "star", "sun", "moon", "rainbow", "flower", "tree", "house", "book",
-    "pencil", "clock", "umbrella", "hat", "shoe",
-    "eye", "ear", "hand", "foot", "heart",
-    "fire", "water", "snow", "cloud", "mountain",
+    "pencil", "clock", "umbrella", "hat", "shoe", "key", "bell", "ball",
+    "guitar", "camera",
+    # からだ
+    "eye", "ear", "hand", "foot", "heart", "nose", "mouth", "tooth",
+    "leg", "bone", "brain", "muscle", "finger", "face", "tongue",
+    # しぜん
+    "fire", "water", "snow", "cloud", "mountain", "rain", "wind",
+    "thunder", "ocean", "river", "leaf", "rock", "sand", "earth", "volcano",
+    # いろ
+    "red", "blue", "green", "yellow", "orange", "purple", "pink",
+    "white", "black", "brown",
 ]
 
 # Neural2 の女性音声（明瞭で子供向け学習に適している）

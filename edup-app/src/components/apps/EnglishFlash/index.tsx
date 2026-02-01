@@ -12,7 +12,7 @@ type WordCard = {
 };
 
 const WORD_DATA: WordCard[] = [
-  // 動物
+  // 動物 (25)
   { word: "dog", emoji: "🐶", category: "animals" },
   { word: "cat", emoji: "🐱", category: "animals" },
   { word: "bird", emoji: "🐦", category: "animals" },
@@ -33,7 +33,12 @@ const WORD_DATA: WordCard[] = [
   { word: "penguin", emoji: "🐧", category: "animals" },
   { word: "whale", emoji: "🐳", category: "animals" },
   { word: "butterfly", emoji: "🦋", category: "animals" },
-  // 食べ物
+  { word: "giraffe", emoji: "🦒", category: "animals" },
+  { word: "zebra", emoji: "🦓", category: "animals" },
+  { word: "snake", emoji: "🐍", category: "animals" },
+  { word: "owl", emoji: "🦉", category: "animals" },
+  { word: "dolphin", emoji: "🐬", category: "animals" },
+  // 食べ物 (25)
   { word: "apple", emoji: "🍎", category: "food" },
   { word: "banana", emoji: "🍌", category: "food" },
   { word: "orange", emoji: "🍊", category: "food" },
@@ -54,7 +59,12 @@ const WORD_DATA: WordCard[] = [
   { word: "corn", emoji: "🌽", category: "food" },
   { word: "carrot", emoji: "🥕", category: "food" },
   { word: "lemon", emoji: "🍋", category: "food" },
-  // 乗り物・もの
+  { word: "chocolate", emoji: "🍫", category: "food" },
+  { word: "cheese", emoji: "🧀", category: "food" },
+  { word: "donut", emoji: "🍩", category: "food" },
+  { word: "pineapple", emoji: "🍍", category: "food" },
+  { word: "mushroom", emoji: "🍄", category: "food" },
+  // 乗り物・もの (25)
   { word: "car", emoji: "🚗", category: "things" },
   { word: "bus", emoji: "🚌", category: "things" },
   { word: "train", emoji: "🚆", category: "things" },
@@ -75,17 +85,54 @@ const WORD_DATA: WordCard[] = [
   { word: "umbrella", emoji: "☂️", category: "things" },
   { word: "hat", emoji: "🎩", category: "things" },
   { word: "shoe", emoji: "👟", category: "things" },
-  // 体・自然
+  { word: "key", emoji: "🔑", category: "things" },
+  { word: "bell", emoji: "🔔", category: "things" },
+  { word: "ball", emoji: "⚽", category: "things" },
+  { word: "guitar", emoji: "🎸", category: "things" },
+  { word: "camera", emoji: "📷", category: "things" },
+  // からだ (15)
   { word: "eye", emoji: "👁️", category: "body" },
   { word: "ear", emoji: "👂", category: "body" },
   { word: "hand", emoji: "✋", category: "body" },
   { word: "foot", emoji: "🦶", category: "body" },
   { word: "heart", emoji: "❤️", category: "body" },
+  { word: "nose", emoji: "👃", category: "body" },
+  { word: "mouth", emoji: "👄", category: "body" },
+  { word: "tooth", emoji: "🦷", category: "body" },
+  { word: "leg", emoji: "🦵", category: "body" },
+  { word: "bone", emoji: "🦴", category: "body" },
+  { word: "brain", emoji: "🧠", category: "body" },
+  { word: "muscle", emoji: "💪", category: "body" },
+  { word: "finger", emoji: "👆", category: "body" },
+  { word: "face", emoji: "😊", category: "body" },
+  { word: "tongue", emoji: "👅", category: "body" },
+  // しぜん (15)
   { word: "fire", emoji: "🔥", category: "nature" },
   { word: "water", emoji: "💧", category: "nature" },
   { word: "snow", emoji: "❄️", category: "nature" },
   { word: "cloud", emoji: "☁️", category: "nature" },
   { word: "mountain", emoji: "⛰️", category: "nature" },
+  { word: "rain", emoji: "🌧️", category: "nature" },
+  { word: "wind", emoji: "🌬️", category: "nature" },
+  { word: "thunder", emoji: "⚡", category: "nature" },
+  { word: "ocean", emoji: "🌊", category: "nature" },
+  { word: "river", emoji: "🏞️", category: "nature" },
+  { word: "leaf", emoji: "🍃", category: "nature" },
+  { word: "rock", emoji: "🪨", category: "nature" },
+  { word: "sand", emoji: "🏖️", category: "nature" },
+  { word: "earth", emoji: "🌍", category: "nature" },
+  { word: "volcano", emoji: "🌋", category: "nature" },
+  // 色 (10)
+  { word: "red", emoji: "🔴", category: "colors" },
+  { word: "blue", emoji: "🔵", category: "colors" },
+  { word: "green", emoji: "🟢", category: "colors" },
+  { word: "yellow", emoji: "🟡", category: "colors" },
+  { word: "orange", emoji: "🟠", category: "colors" },
+  { word: "purple", emoji: "🟣", category: "colors" },
+  { word: "pink", emoji: "🩷", category: "colors" },
+  { word: "white", emoji: "⬜", category: "colors" },
+  { word: "black", emoji: "⬛", category: "colors" },
+  { word: "brown", emoji: "🟤", category: "colors" },
 ];
 
 const CATEGORIES = [
@@ -95,6 +142,7 @@ const CATEGORIES = [
   { id: "things", label: "もの" },
   { id: "body", label: "からだ" },
   { id: "nature", label: "しぜん" },
+  { id: "colors", label: "いろ" },
 ];
 
 const CARDS_PER_SESSION = 10;
