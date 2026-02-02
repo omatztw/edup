@@ -89,10 +89,10 @@ function generateEquations(
   return equations;
 }
 
-// ドットは常に同じサイズ
-const DOT_SIZE_PX = 16;
-const PAD = 5;
-const MIN_DIST = 3;
+// ドットは常に同じサイズ（%単位でカードサイズに連動）
+const DOT_SIZE_PCT = 5;
+const PAD = 8;
+const MIN_DIST = 7;
 
 function generateDotPositions(count: number): { x: number; y: number }[] {
   const positions: { x: number; y: number }[] = [];
@@ -428,7 +428,7 @@ export default function DotsCardMath({ childId, childName }: Props) {
             ? "border-orange-400 bg-white shadow-md"
             : "border-gray-200 bg-gray-50"
         }`}
-        style={{ width: "min(28vw, 180px)", height: "min(28vw, 180px)" }}
+        style={{ width: "min(28vw, 320px)", height: "min(28vw, 320px)" }}
       >
         {positions.map((pos, i) => (
           <div
@@ -437,8 +437,8 @@ export default function DotsCardMath({ childId, childName }: Props) {
             style={{
               left: `${pos.x}%`,
               top: `${pos.y}%`,
-              width: `${DOT_SIZE_PX}px`,
-              height: `${DOT_SIZE_PX}px`,
+              width: `${DOT_SIZE_PCT}%`,
+              height: `${DOT_SIZE_PCT}%`,
               transform: "translate(-50%, -50%)",
             }}
           />
