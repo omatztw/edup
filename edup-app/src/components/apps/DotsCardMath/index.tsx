@@ -90,9 +90,9 @@ function generateEquations(
 }
 
 // ドットは常に同じサイズ
-const DOT_SIZE_PX = 24;
+const DOT_SIZE_PX = 16;
 const PAD = 5;
-const MIN_DIST = 4;
+const MIN_DIST = 3;
 
 function generateDotPositions(count: number): { x: number; y: number }[] {
   const positions: { x: number; y: number }[] = [];
