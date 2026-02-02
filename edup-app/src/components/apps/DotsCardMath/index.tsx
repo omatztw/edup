@@ -182,9 +182,9 @@ export default function DotsCardMath({ childId, childName }: Props) {
   const [equations, setEquations] = useState<Equation[]>([]);
   const [currentEqIndex, setCurrentEqIndex] = useState(0);
   const [flashStep, setFlashStep] = useState<FlashStep>(0);
-  const [dotPositions, setDotPositions] = useState<{ x: number; y: number }[]>(
-    []
-  );
+  const [dotsA, setDotsA] = useState<{ x: number; y: number }[]>([]);
+  const [dotsB, setDotsB] = useState<{ x: number; y: number }[]>([]);
+  const [dotsAnswer, setDotsAnswer] = useState<{ x: number; y: number }[]>([]);
   const [newBadges, setNewBadges] = useState<
     { id: string; name: string; icon: string }[]
   >([]);
@@ -258,7 +258,9 @@ export default function DotsCardMath({ childId, childName }: Props) {
     setEquations(eqs);
     setCurrentEqIndex(0);
     setFlashStep(0);
-    setDotPositions(generateDotPositions(eqs[0].a));
+    setDotsA(generateDotPositions(eqs[0].a));
+    setDotsB(generateDotPositions(eqs[0].b));
+    setDotsAnswer(generateDotPositions(eqs[0].answer));
     setPhase("playing");
     setNewBadges([]);
     sessionStartRef.current = Date.now();
@@ -293,13 +295,11 @@ export default function DotsCardMath({ childId, childName }: Props) {
         const nextIsDotStep = nextStep === 0 || nextStep === 2 || nextStep === 4;
 
         if (nextIsDotStep) {
-          // 次はドッツ表示ステップ: ドット配置を先にセットして音声開始
+          // 次はドッツ表示ステップ: 音声開始（ドットは既に配置済み）
           const dotCount = nextStep === 2 ? eq.b : eq.answer;
-          setDotPositions(generateDotPositions(dotCount));
           speechPromiseRef.current = speakNumber(dotCount);
         } else {
-          // 次は演算子ステップ: ドッツ非表示にして音声開始
-          setDotPositions([]);
+          // 次は演算子ステップ: 音声開始
           if (nextStep === 1) {
             speechPromiseRef.current = speakOperator(eq.op);
           } else {
@@ -348,9 +348,11 @@ export default function DotsCardMath({ childId, childName }: Props) {
 
           setPhase("done");
         } else {
-          // 次の等式の第1項を準備
+          // 次の等式を準備（全ドット位置を事前生成）
           const nextEq = equations[nextIdx];
-          setDotPositions(generateDotPositions(nextEq.a));
+          setDotsA(generateDotPositions(nextEq.a));
+          setDotsB(generateDotPositions(nextEq.b));
+          setDotsAnswer(generateDotPositions(nextEq.answer));
           speechPromiseRef.current = speakNumber(nextEq.a);
           setCurrentEqIndex(nextIdx);
           setFlashStep(0);
@@ -399,44 +401,100 @@ export default function DotsCardMath({ childId, childName }: Props) {
     );
   }
 
-  // フラッシュ中
+  // フラッシュ中 - 式全体を横並びで表示し、ステップごとに要素を追加していく
   if (phase === "playing") {
     const eq = equations[currentEqIndex];
-    // ステップに応じたラベル表示
-    const stepLabel =
-      flashStep === 1
-        ? eq?.op === "+"
-          ? "＋"
-          : "−"
-        : flashStep === 3
-          ? "＝"
-          : "";
+
+    // 各要素のドット位置を事前計算して保持
+    const showA = flashStep >= 0; // 第1項: step 0 以降
+    const showOp = flashStep >= 1; // 演算子: step 1 以降
+    const showB = flashStep >= 2; // 第2項: step 2 以降
+    const showEq = flashStep >= 3; // =記号: step 3 以降
+    const showAns = flashStep >= 4; // 答え: step 4 以降
+
+    // 現在アクティブな要素をハイライト
+    const activeStep = flashStep;
+
+    const DotBox = ({
+      positions,
+      active,
+    }: {
+      positions: { x: number; y: number }[];
+      active: boolean;
+    }) => (
+      <div
+        className={`relative aspect-square rounded-xl border-2 transition-all ${
+          active
+            ? "border-orange-400 bg-white shadow-md"
+            : "border-gray-200 bg-gray-50"
+        }`}
+        style={{ width: "min(28vw, 180px)", height: "min(28vw, 180px)" }}
+      >
+        {positions.map((pos, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-red-500"
+            style={{
+              left: `${pos.x}%`,
+              top: `${pos.y}%`,
+              width: `${DOT_SIZE_PX}px`,
+              height: `${DOT_SIZE_PX}px`,
+              transform: "translate(-50%, -50%)",
+            }}
+          />
+        ))}
+      </div>
+    );
+
+    const OpSymbol = ({
+      symbol,
+      active,
+    }: {
+      symbol: string;
+      active: boolean;
+    }) => (
+      <div
+        className={`flex items-center justify-center text-3xl sm:text-5xl font-bold transition-all ${
+          active ? "text-orange-500 scale-110" : "text-gray-500"
+        }`}
+        style={{ width: "min(8vw, 48px)" }}
+      >
+        {symbol}
+      </div>
+    );
 
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
-        {/* 演算子表示（ステップ1,3） */}
-        {(flashStep === 1 || flashStep === 3) && (
-          <div className="text-8xl font-bold text-gray-700">{stepLabel}</div>
-        )}
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-2">
+        {/* 式を横並びに表示 */}
+        <div className="flex items-center justify-center gap-1 sm:gap-2">
+          {/* 第1項 */}
+          {showA && (
+            <DotBox positions={dotsA} active={activeStep === 0} />
+          )}
 
-        {/* ドッツ表示（ステップ0,2,4） */}
-        {(flashStep === 0 || flashStep === 2 || flashStep === 4) && (
-          <div className="relative h-[90vmin] w-[90vmin] max-h-[700px] max-w-[700px] rounded-2xl bg-white shadow-lg border-2 border-gray-100">
-            {dotPositions.map((pos, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full bg-red-500"
-                style={{
-                  left: `${pos.x}%`,
-                  top: `${pos.y}%`,
-                  width: `${DOT_SIZE_PX}px`,
-                  height: `${DOT_SIZE_PX}px`,
-                  transform: "translate(-50%, -50%)",
-                }}
-              />
-            ))}
-          </div>
-        )}
+          {/* 演算子 */}
+          {showOp && (
+            <OpSymbol
+              symbol={eq?.op === "+" ? "＋" : "−"}
+              active={activeStep === 1}
+            />
+          )}
+
+          {/* 第2項 */}
+          {showB && (
+            <DotBox positions={dotsB} active={activeStep === 2} />
+          )}
+
+          {/* = 記号 */}
+          {showEq && (
+            <OpSymbol symbol="＝" active={activeStep === 3} />
+          )}
+
+          {/* 答え */}
+          {showAns && (
+            <DotBox positions={dotsAnswer} active={activeStep === 4} />
+          )}
+        </div>
 
         <div className="fixed bottom-8 text-center text-gray-400 text-sm">
           {currentEqIndex + 1} / {equations.length}
