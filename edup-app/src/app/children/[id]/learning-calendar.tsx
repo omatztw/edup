@@ -161,7 +161,7 @@ export default function LearningCalendar({
                 {day}
               </span>
 
-              {/* App dots */}
+              {/* App badges */}
               {hasActivity && (
                 <div className="mt-0.5 flex flex-wrap justify-center gap-0.5">
                   {[...appCounts!.entries()].map(([appId, count]) => {
@@ -169,19 +169,14 @@ export default function LearningCalendar({
                     return (
                       <span
                         key={appId}
-                        className={`inline-block h-2.5 w-2.5 rounded-full ${color.dot}`}
+                        className={`relative inline-flex h-3.5 min-w-[14px] items-center justify-center rounded-full px-0.5 text-[8px] font-bold leading-none text-white ${color.dot}`}
                         title={`${color.label}: ${count}回`}
-                      />
+                      >
+                        {count}
+                      </span>
                     );
                   })}
                 </div>
-              )}
-
-              {/* Total count */}
-              {totalSessions > 0 && (
-                <span className="mt-auto text-[9px] font-medium text-gray-400">
-                  {totalSessions}
-                </span>
               )}
             </div>
           );
