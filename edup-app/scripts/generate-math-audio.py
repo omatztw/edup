@@ -19,7 +19,7 @@ os.makedirs(OUT_DIR, exist_ok=True)
 operators = {
     "plus": "たす",
     "minus": "ひく",
-    "wa": "は",
+    "wa": "わ",
 }
 
 for filename, text in operators.items():
