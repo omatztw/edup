@@ -110,6 +110,12 @@ export default function ChildrenManager({
                   ドッツカード
                 </a>
                 <a
+                  href={`/play/dots-card-math?child=${child.id}`}
+                  className="rounded-lg bg-orange-50 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-100"
+                >
+                  ドッツ計算
+                </a>
+                <a
                   href={`/play/english-flash?child=${child.id}`}
                   className="rounded-lg bg-emerald-50 px-3 py-1.5 text-sm text-emerald-600 hover:bg-emerald-100"
                 >
