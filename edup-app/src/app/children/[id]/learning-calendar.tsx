@@ -16,6 +16,7 @@ const APP_COLORS: Record<string, { bg: string; dot: string; label: string }> = {
   "dots-card": { bg: "bg-sky-100", dot: "bg-sky-500", label: "ドッツ" },
   "english-flash": { bg: "bg-emerald-100", dot: "bg-emerald-500", label: "英語" },
   "flash-calc": { bg: "bg-amber-100", dot: "bg-amber-500", label: "計算" },
+  "dots-card-math": { bg: "bg-rose-100", dot: "bg-rose-500", label: "ドッツ計算" },
   "hiragana-karuta": { bg: "bg-pink-100", dot: "bg-pink-500", label: "ひらがな" },
   "flag-quiz": { bg: "bg-purple-100", dot: "bg-purple-500", label: "国旗" },
   "clock-reader": { bg: "bg-orange-100", dot: "bg-orange-500", label: "時計" },
