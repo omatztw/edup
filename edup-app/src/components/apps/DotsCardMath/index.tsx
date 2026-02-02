@@ -113,18 +113,6 @@ function generateDotPositions(count: number): { x: number; y: number }[] {
   return positions;
 }
 
-/** 音声再生（MP3優先） */
-function playMathAudio(file: string): Promise<void> {
-  if (typeof window === "undefined") return Promise.resolve();
-  return new Promise<void>((resolve) => {
-    const audio = new Audio(`/audio/dots-math/${file}`);
-    audio.playbackRate = 1.5;
-    audio.onended = () => resolve();
-    audio.onerror = () => resolve();
-    audio.play().catch(() => resolve());
-  });
-}
-
 /** フォールバック用speechSynthesis */
 function speakFallback(text: string): Promise<void> {
   if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -201,6 +189,8 @@ export default function DotsCardMath({ childId, childName }: Props) {
     { id: string; name: string; icon: string }[]
   >([]);
   const cancelledRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const speechPromiseRef = useRef<Promise<void>>(Promise.resolve());
   const sessionStartRef = useRef<number>(0);
   const supabase = createClient();
 
@@ -273,11 +263,17 @@ export default function DotsCardMath({ childId, childName }: Props) {
     setNewBadges([]);
     sessionStartRef.current = Date.now();
     cancelledRef.current = false;
+
+    // 最初のカード（第1項）の音声を少し待ってから開始
+    setTimeout(() => {
+      speechPromiseRef.current = speakNumber(eqs[0].a);
+    }, 200);
   }, [progress]);
 
-  // フラッシュ進行
+  // フラッシュ進行: タイマーと音声の両方を待ってから次のステップへ進む
   useEffect(() => {
     if (phase !== "playing" || !progress || equations.length === 0) return;
+
     cancelledRef.current = false;
 
     const eq = equations[currentEqIndex];
@@ -285,47 +281,35 @@ export default function DotsCardMath({ childId, childName }: Props) {
 
     const speed = progress.speed * 1000;
 
-    const runStep = async () => {
+    // ドッツ表示ステップ（0,2,4）はタイマー+音声、演算子ステップ（1,3）は音声のみ
+    const isDotStep = flashStep === 0 || flashStep === 2 || flashStep === 4;
+
+    const advanceToNext = () => {
       if (cancelledRef.current) return;
 
-      if (flashStep === 0) {
-        // 第1項: ドッツ表示 + 音声
-        setDotPositions(generateDotPositions(eq.a));
-        await Promise.all([
-          speakNumber(eq.a),
-          new Promise((r) => setTimeout(r, speed)),
-        ]);
-      } else if (flashStep === 1) {
-        // 演算子: 音声のみ
-        setDotPositions([]);
-        await speakOperator(eq.op);
-      } else if (flashStep === 2) {
-        // 第2項: ドッツ表示 + 音声
-        setDotPositions(generateDotPositions(eq.b));
-        await Promise.all([
-          speakNumber(eq.b),
-          new Promise((r) => setTimeout(r, speed)),
-        ]);
-      } else if (flashStep === 3) {
-        // 「は」: 音声のみ
-        setDotPositions([]);
-        await speakWa();
-      } else if (flashStep === 4) {
-        // 答え: ドッツ表示 + 音声
-        setDotPositions(generateDotPositions(eq.answer));
-        await Promise.all([
-          speakNumber(eq.answer),
-          new Promise((r) => setTimeout(r, speed)),
-        ]);
-      }
-
-      if (cancelledRef.current) return;
-
-      // 次のステップへ
       if (flashStep < 4) {
-        setFlashStep((s) => (s + 1) as FlashStep);
+        // 次のステップへ
+        const nextStep = (flashStep + 1) as FlashStep;
+        const nextIsDotStep = nextStep === 0 || nextStep === 2 || nextStep === 4;
+
+        if (nextIsDotStep) {
+          // 次はドッツ表示ステップ: ドット配置を先にセットして音声開始
+          const dotCount = nextStep === 2 ? eq.b : eq.answer;
+          setDotPositions(generateDotPositions(dotCount));
+          speechPromiseRef.current = speakNumber(dotCount);
+        } else {
+          // 次は演算子ステップ: ドッツ非表示にして音声開始
+          setDotPositions([]);
+          if (nextStep === 1) {
+            speechPromiseRef.current = speakOperator(eq.op);
+          } else {
+            speechPromiseRef.current = speakWa();
+          }
+        }
+
+        setFlashStep(nextStep);
       } else {
-        // 次の等式へ
+        // step 4 完了 → 次の等式へ
         const nextIdx = currentEqIndex + 1;
         if (nextIdx >= equations.length) {
           // セッション完了
@@ -364,16 +348,35 @@ export default function DotsCardMath({ childId, childName }: Props) {
 
           setPhase("done");
         } else {
+          // 次の等式の第1項を準備
+          const nextEq = equations[nextIdx];
+          setDotPositions(generateDotPositions(nextEq.a));
+          speechPromiseRef.current = speakNumber(nextEq.a);
           setCurrentEqIndex(nextIdx);
           setFlashStep(0);
         }
       }
     };
 
-    runStep();
+    if (isDotStep) {
+      // ドッツ表示ステップ: タイマーと音声の両方を待つ
+      const timerPromise = new Promise<void>((resolve) => {
+        timerRef.current = setTimeout(resolve, speed);
+      });
+
+      Promise.all([timerPromise, speechPromiseRef.current]).then(() => {
+        advanceToNext();
+      });
+    } else {
+      // 演算子ステップ: 音声完了のみを待つ
+      speechPromiseRef.current.then(() => {
+        advanceToNext();
+      });
+    }
 
     return () => {
       cancelledRef.current = true;
+      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [phase, currentEqIndex, flashStep, equations, progress, saveProgress, childId, supabase]);
 
