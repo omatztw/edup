@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import ScheduleManager from "./schedule-manager";
 import ActivityHistory from "./activity-history";
 import BadgeList from "./badge-list";
+import LearningCalendar from "./learning-calendar";
 
 export default async function ChildDetailPage({
   params,
@@ -45,7 +46,7 @@ export default async function ChildDetailPage({
     .select("id, app_id, duration_seconds, session_data, created_at")
     .eq("child_id", childId)
     .order("created_at", { ascending: false })
-    .limit(30);
+    .limit(200);
 
   // アプリ一覧
   const { data: apps } = await supabase
@@ -82,6 +83,12 @@ export default async function ChildDetailPage({
             initialSchedules={schedules ?? []}
             apps={apps ?? []}
           />
+        </section>
+
+        {/* 学習カレンダー */}
+        <section className="rounded-lg border bg-white p-6 shadow-sm">
+          <h3 className="mb-4 font-medium text-gray-700">学習カレンダー</h3>
+          <LearningCalendar logs={logs ?? []} apps={apps ?? []} />
         </section>
 
         {/* 学習履歴 */}
