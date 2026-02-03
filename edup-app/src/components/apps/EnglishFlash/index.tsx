@@ -3,148 +3,136 @@
 import { createClient } from "@/lib/supabase/client";
 import { checkAndAwardBadges } from "@/lib/badges";
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 
 // --- 単語データ ---
 type WordCard = {
   word: string;
   emoji: string;
-  fluentEmoji?: string; // Fluent Emoji画像パス（3D）
   category: string;
-};
-
-// Fluent Emoji CDN ベースURL
-const FLUENT_EMOJI_BASE =
-  "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets";
-
-// Fluent Emoji画像URLを生成するヘルパー
-const fluent = (name: string): string => {
-  const snakeCase = name.toLowerCase().replace(/ /g, "_");
-  return `${FLUENT_EMOJI_BASE}/${encodeURIComponent(name)}/3D/${snakeCase}_3d.png`;
 };
 
 const WORD_DATA: WordCard[] = [
   // 動物 (25)
-  { word: "dog", emoji: "🐶", fluentEmoji: fluent("Dog face"), category: "animals" },
-  { word: "cat", emoji: "🐱", fluentEmoji: fluent("Cat face"), category: "animals" },
-  { word: "bird", emoji: "🐦", fluentEmoji: fluent("Bird"), category: "animals" },
-  { word: "fish", emoji: "🐟", fluentEmoji: fluent("Fish"), category: "animals" },
-  { word: "rabbit", emoji: "🐰", fluentEmoji: fluent("Rabbit face"), category: "animals" },
-  { word: "bear", emoji: "🐻", fluentEmoji: fluent("Bear"), category: "animals" },
-  { word: "elephant", emoji: "🐘", fluentEmoji: fluent("Elephant"), category: "animals" },
-  { word: "lion", emoji: "🦁", fluentEmoji: fluent("Lion"), category: "animals" },
-  { word: "monkey", emoji: "🐵", fluentEmoji: fluent("Monkey face"), category: "animals" },
-  { word: "pig", emoji: "🐷", fluentEmoji: fluent("Pig face"), category: "animals" },
-  { word: "cow", emoji: "🐮", fluentEmoji: fluent("Cow face"), category: "animals" },
-  { word: "horse", emoji: "🐴", fluentEmoji: fluent("Horse face"), category: "animals" },
-  { word: "sheep", emoji: "🐑", fluentEmoji: fluent("Ewe"), category: "animals" },
-  { word: "chicken", emoji: "🐔", fluentEmoji: fluent("Chicken"), category: "animals" },
-  { word: "duck", emoji: "🦆", fluentEmoji: fluent("Duck"), category: "animals" },
-  { word: "frog", emoji: "🐸", fluentEmoji: fluent("Frog"), category: "animals" },
-  { word: "turtle", emoji: "🐢", fluentEmoji: fluent("Turtle"), category: "animals" },
-  { word: "penguin", emoji: "🐧", fluentEmoji: fluent("Penguin"), category: "animals" },
-  { word: "whale", emoji: "🐳", fluentEmoji: fluent("Spouting whale"), category: "animals" },
-  { word: "butterfly", emoji: "🦋", fluentEmoji: fluent("Butterfly"), category: "animals" },
-  { word: "giraffe", emoji: "🦒", fluentEmoji: fluent("Giraffe"), category: "animals" },
-  { word: "zebra", emoji: "🦓", fluentEmoji: fluent("Zebra"), category: "animals" },
-  { word: "snake", emoji: "🐍", fluentEmoji: fluent("Snake"), category: "animals" },
-  { word: "owl", emoji: "🦉", fluentEmoji: fluent("Owl"), category: "animals" },
-  { word: "dolphin", emoji: "🐬", fluentEmoji: fluent("Dolphin"), category: "animals" },
+  { word: "dog", emoji: "🐶", category: "animals" },
+  { word: "cat", emoji: "🐱", category: "animals" },
+  { word: "bird", emoji: "🐦", category: "animals" },
+  { word: "fish", emoji: "🐟", category: "animals" },
+  { word: "rabbit", emoji: "🐰", category: "animals" },
+  { word: "bear", emoji: "🐻", category: "animals" },
+  { word: "elephant", emoji: "🐘", category: "animals" },
+  { word: "lion", emoji: "🦁", category: "animals" },
+  { word: "monkey", emoji: "🐵", category: "animals" },
+  { word: "pig", emoji: "🐷", category: "animals" },
+  { word: "cow", emoji: "🐮", category: "animals" },
+  { word: "horse", emoji: "🐴", category: "animals" },
+  { word: "sheep", emoji: "🐑", category: "animals" },
+  { word: "chicken", emoji: "🐔", category: "animals" },
+  { word: "duck", emoji: "🦆", category: "animals" },
+  { word: "frog", emoji: "🐸", category: "animals" },
+  { word: "turtle", emoji: "🐢", category: "animals" },
+  { word: "penguin", emoji: "🐧", category: "animals" },
+  { word: "whale", emoji: "🐳", category: "animals" },
+  { word: "butterfly", emoji: "🦋", category: "animals" },
+  { word: "giraffe", emoji: "🦒", category: "animals" },
+  { word: "zebra", emoji: "🦓", category: "animals" },
+  { word: "snake", emoji: "🐍", category: "animals" },
+  { word: "owl", emoji: "🦉", category: "animals" },
+  { word: "dolphin", emoji: "🐬", category: "animals" },
   // 食べ物 (25)
-  { word: "apple", emoji: "🍎", fluentEmoji: fluent("Red apple"), category: "food" },
-  { word: "banana", emoji: "🍌", fluentEmoji: fluent("Banana"), category: "food" },
-  { word: "orange", emoji: "🍊", fluentEmoji: fluent("Tangerine"), category: "food" },
-  { word: "grape", emoji: "🍇", fluentEmoji: fluent("Grapes"), category: "food" },
-  { word: "strawberry", emoji: "🍓", fluentEmoji: fluent("Strawberry"), category: "food" },
-  { word: "watermelon", emoji: "🍉", fluentEmoji: fluent("Watermelon"), category: "food" },
-  { word: "peach", emoji: "🍑", fluentEmoji: fluent("Peach"), category: "food" },
-  { word: "cherry", emoji: "🍒", fluentEmoji: fluent("Cherries"), category: "food" },
-  { word: "bread", emoji: "🍞", fluentEmoji: fluent("Bread"), category: "food" },
-  { word: "rice", emoji: "🍚", fluentEmoji: fluent("Cooked rice"), category: "food" },
-  { word: "egg", emoji: "🥚", fluentEmoji: fluent("Egg"), category: "food" },
-  { word: "milk", emoji: "🥛", fluentEmoji: fluent("Glass of milk"), category: "food" },
-  { word: "cake", emoji: "🎂", fluentEmoji: fluent("Birthday cake"), category: "food" },
-  { word: "cookie", emoji: "🍪", fluentEmoji: fluent("Cookie"), category: "food" },
-  { word: "ice cream", emoji: "🍦", fluentEmoji: fluent("Soft ice cream"), category: "food" },
-  { word: "pizza", emoji: "🍕", fluentEmoji: fluent("Pizza"), category: "food" },
-  { word: "tomato", emoji: "🍅", fluentEmoji: fluent("Tomato"), category: "food" },
-  { word: "corn", emoji: "🌽", fluentEmoji: fluent("Ear of corn"), category: "food" },
-  { word: "carrot", emoji: "🥕", fluentEmoji: fluent("Carrot"), category: "food" },
-  { word: "lemon", emoji: "🍋", fluentEmoji: fluent("Lemon"), category: "food" },
-  { word: "chocolate", emoji: "🍫", fluentEmoji: fluent("Chocolate bar"), category: "food" },
-  { word: "cheese", emoji: "🧀", fluentEmoji: fluent("Cheese wedge"), category: "food" },
-  { word: "donut", emoji: "🍩", fluentEmoji: fluent("Doughnut"), category: "food" },
-  { word: "pineapple", emoji: "🍍", fluentEmoji: fluent("Pineapple"), category: "food" },
-  { word: "mushroom", emoji: "🍄", fluentEmoji: fluent("Mushroom"), category: "food" },
+  { word: "apple", emoji: "🍎", category: "food" },
+  { word: "banana", emoji: "🍌", category: "food" },
+  { word: "orange", emoji: "🍊", category: "food" },
+  { word: "grape", emoji: "🍇", category: "food" },
+  { word: "strawberry", emoji: "🍓", category: "food" },
+  { word: "watermelon", emoji: "🍉", category: "food" },
+  { word: "peach", emoji: "🍑", category: "food" },
+  { word: "cherry", emoji: "🍒", category: "food" },
+  { word: "bread", emoji: "🍞", category: "food" },
+  { word: "rice", emoji: "🍚", category: "food" },
+  { word: "egg", emoji: "🥚", category: "food" },
+  { word: "milk", emoji: "🥛", category: "food" },
+  { word: "cake", emoji: "🎂", category: "food" },
+  { word: "cookie", emoji: "🍪", category: "food" },
+  { word: "ice cream", emoji: "🍦", category: "food" },
+  { word: "pizza", emoji: "🍕", category: "food" },
+  { word: "tomato", emoji: "🍅", category: "food" },
+  { word: "corn", emoji: "🌽", category: "food" },
+  { word: "carrot", emoji: "🥕", category: "food" },
+  { word: "lemon", emoji: "🍋", category: "food" },
+  { word: "chocolate", emoji: "🍫", category: "food" },
+  { word: "cheese", emoji: "🧀", category: "food" },
+  { word: "donut", emoji: "🍩", category: "food" },
+  { word: "pineapple", emoji: "🍍", category: "food" },
+  { word: "mushroom", emoji: "🍄", category: "food" },
   // 乗り物・もの (25)
-  { word: "car", emoji: "🚗", fluentEmoji: fluent("Automobile"), category: "things" },
-  { word: "bus", emoji: "🚌", fluentEmoji: fluent("Bus"), category: "things" },
-  { word: "train", emoji: "🚆", fluentEmoji: fluent("Train"), category: "things" },
-  { word: "airplane", emoji: "✈️", fluentEmoji: fluent("Airplane"), category: "things" },
-  { word: "bicycle", emoji: "🚲", fluentEmoji: fluent("Bicycle"), category: "things" },
-  { word: "boat", emoji: "⛵", fluentEmoji: fluent("Sailboat"), category: "things" },
-  { word: "rocket", emoji: "🚀", fluentEmoji: fluent("Rocket"), category: "things" },
-  { word: "star", emoji: "⭐", fluentEmoji: fluent("Star"), category: "things" },
-  { word: "sun", emoji: "☀️", fluentEmoji: fluent("Sun"), category: "things" },
-  { word: "moon", emoji: "🌙", fluentEmoji: fluent("Crescent moon"), category: "things" },
-  { word: "rainbow", emoji: "🌈", fluentEmoji: fluent("Rainbow"), category: "things" },
-  { word: "flower", emoji: "🌸", fluentEmoji: fluent("Cherry blossom"), category: "things" },
-  { word: "tree", emoji: "🌳", fluentEmoji: fluent("Deciduous tree"), category: "things" },
-  { word: "house", emoji: "🏠", fluentEmoji: fluent("House"), category: "things" },
-  { word: "book", emoji: "📚", fluentEmoji: fluent("Books"), category: "things" },
-  { word: "pencil", emoji: "✏️", fluentEmoji: fluent("Pencil"), category: "things" },
-  { word: "clock", emoji: "🕐", fluentEmoji: fluent("One o'clock"), category: "things" },
-  { word: "umbrella", emoji: "☂️", fluentEmoji: fluent("Umbrella"), category: "things" },
-  { word: "hat", emoji: "🎩", fluentEmoji: fluent("Top hat"), category: "things" },
-  { word: "shoe", emoji: "👟", fluentEmoji: fluent("Running shoe"), category: "things" },
-  { word: "key", emoji: "🔑", fluentEmoji: fluent("Key"), category: "things" },
-  { word: "bell", emoji: "🔔", fluentEmoji: fluent("Bell"), category: "things" },
-  { word: "ball", emoji: "⚽", fluentEmoji: fluent("Soccer ball"), category: "things" },
-  { word: "guitar", emoji: "🎸", fluentEmoji: fluent("Guitar"), category: "things" },
-  { word: "camera", emoji: "📷", fluentEmoji: fluent("Camera"), category: "things" },
+  { word: "car", emoji: "🚗", category: "things" },
+  { word: "bus", emoji: "🚌", category: "things" },
+  { word: "train", emoji: "🚆", category: "things" },
+  { word: "airplane", emoji: "✈️", category: "things" },
+  { word: "bicycle", emoji: "🚲", category: "things" },
+  { word: "boat", emoji: "⛵", category: "things" },
+  { word: "rocket", emoji: "🚀", category: "things" },
+  { word: "star", emoji: "⭐", category: "things" },
+  { word: "sun", emoji: "☀️", category: "things" },
+  { word: "moon", emoji: "🌙", category: "things" },
+  { word: "rainbow", emoji: "🌈", category: "things" },
+  { word: "flower", emoji: "🌸", category: "things" },
+  { word: "tree", emoji: "🌳", category: "things" },
+  { word: "house", emoji: "🏠", category: "things" },
+  { word: "book", emoji: "📚", category: "things" },
+  { word: "pencil", emoji: "✏️", category: "things" },
+  { word: "clock", emoji: "🕐", category: "things" },
+  { word: "umbrella", emoji: "☂️", category: "things" },
+  { word: "hat", emoji: "🎩", category: "things" },
+  { word: "shoe", emoji: "👟", category: "things" },
+  { word: "key", emoji: "🔑", category: "things" },
+  { word: "bell", emoji: "🔔", category: "things" },
+  { word: "ball", emoji: "⚽", category: "things" },
+  { word: "guitar", emoji: "🎸", category: "things" },
+  { word: "camera", emoji: "📷", category: "things" },
   // からだ (15)
-  { word: "eye", emoji: "👁️", fluentEmoji: fluent("Eye"), category: "body" },
-  { word: "ear", emoji: "👂", fluentEmoji: fluent("Ear"), category: "body" },
-  { word: "hand", emoji: "✋", fluentEmoji: fluent("Raised hand"), category: "body" },
-  { word: "foot", emoji: "🦶", fluentEmoji: fluent("Foot"), category: "body" },
-  { word: "heart", emoji: "❤️", fluentEmoji: fluent("Red heart"), category: "body" },
-  { word: "nose", emoji: "👃", fluentEmoji: fluent("Nose"), category: "body" },
-  { word: "mouth", emoji: "👄", fluentEmoji: fluent("Mouth"), category: "body" },
-  { word: "tooth", emoji: "🦷", fluentEmoji: fluent("Tooth"), category: "body" },
-  { word: "leg", emoji: "🦵", fluentEmoji: fluent("Leg"), category: "body" },
-  { word: "bone", emoji: "🦴", fluentEmoji: fluent("Bone"), category: "body" },
-  { word: "brain", emoji: "🧠", fluentEmoji: fluent("Brain"), category: "body" },
-  { word: "muscle", emoji: "💪", fluentEmoji: fluent("Flexed biceps"), category: "body" },
-  { word: "finger", emoji: "👆", fluentEmoji: fluent("Backhand index pointing up"), category: "body" },
-  { word: "face", emoji: "😊", fluentEmoji: fluent("Smiling face with smiling eyes"), category: "body" },
-  { word: "tongue", emoji: "👅", fluentEmoji: fluent("Tongue"), category: "body" },
+  { word: "eye", emoji: "👁️", category: "body" },
+  { word: "ear", emoji: "👂", category: "body" },
+  { word: "hand", emoji: "✋", category: "body" },
+  { word: "foot", emoji: "🦶", category: "body" },
+  { word: "heart", emoji: "❤️", category: "body" },
+  { word: "nose", emoji: "👃", category: "body" },
+  { word: "mouth", emoji: "👄", category: "body" },
+  { word: "tooth", emoji: "🦷", category: "body" },
+  { word: "leg", emoji: "🦵", category: "body" },
+  { word: "bone", emoji: "🦴", category: "body" },
+  { word: "brain", emoji: "🧠", category: "body" },
+  { word: "muscle", emoji: "💪", category: "body" },
+  { word: "finger", emoji: "👆", category: "body" },
+  { word: "face", emoji: "😊", category: "body" },
+  { word: "tongue", emoji: "👅", category: "body" },
   // しぜん (15)
-  { word: "fire", emoji: "🔥", fluentEmoji: fluent("Fire"), category: "nature" },
-  { word: "water", emoji: "💧", fluentEmoji: fluent("Droplet"), category: "nature" },
-  { word: "snow", emoji: "❄️", fluentEmoji: fluent("Snowflake"), category: "nature" },
-  { word: "cloud", emoji: "☁️", fluentEmoji: fluent("Cloud"), category: "nature" },
-  { word: "mountain", emoji: "⛰️", fluentEmoji: fluent("Mountain"), category: "nature" },
-  { word: "rain", emoji: "🌧️", fluentEmoji: fluent("Cloud with rain"), category: "nature" },
-  { word: "wind", emoji: "🌬️", fluentEmoji: fluent("Wind face"), category: "nature" },
-  { word: "thunder", emoji: "⚡", fluentEmoji: fluent("High voltage"), category: "nature" },
-  { word: "ocean", emoji: "🌊", fluentEmoji: fluent("Water wave"), category: "nature" },
-  { word: "river", emoji: "🏞️", fluentEmoji: fluent("National park"), category: "nature" },
-  { word: "leaf", emoji: "🍃", fluentEmoji: fluent("Leaf fluttering in wind"), category: "nature" },
-  { word: "rock", emoji: "🪨", fluentEmoji: fluent("Rock"), category: "nature" },
-  { word: "sand", emoji: "🏖️", fluentEmoji: fluent("Beach with umbrella"), category: "nature" },
-  { word: "earth", emoji: "🌍", fluentEmoji: fluent("Globe showing Europe-Africa"), category: "nature" },
-  { word: "volcano", emoji: "🌋", fluentEmoji: fluent("Volcano"), category: "nature" },
+  { word: "fire", emoji: "🔥", category: "nature" },
+  { word: "water", emoji: "💧", category: "nature" },
+  { word: "snow", emoji: "❄️", category: "nature" },
+  { word: "cloud", emoji: "☁️", category: "nature" },
+  { word: "mountain", emoji: "⛰️", category: "nature" },
+  { word: "rain", emoji: "🌧️", category: "nature" },
+  { word: "wind", emoji: "🌬️", category: "nature" },
+  { word: "thunder", emoji: "⚡", category: "nature" },
+  { word: "ocean", emoji: "🌊", category: "nature" },
+  { word: "river", emoji: "🏞️", category: "nature" },
+  { word: "leaf", emoji: "🍃", category: "nature" },
+  { word: "rock", emoji: "🪨", category: "nature" },
+  { word: "sand", emoji: "🏖️", category: "nature" },
+  { word: "earth", emoji: "🌍", category: "nature" },
+  { word: "volcano", emoji: "🌋", category: "nature" },
   // 色 (10)
-  { word: "red", emoji: "🔴", fluentEmoji: fluent("Red circle"), category: "colors" },
-  { word: "blue", emoji: "🔵", fluentEmoji: fluent("Blue circle"), category: "colors" },
-  { word: "green", emoji: "🟢", fluentEmoji: fluent("Green circle"), category: "colors" },
-  { word: "yellow", emoji: "🟡", fluentEmoji: fluent("Yellow circle"), category: "colors" },
-  { word: "orange", emoji: "🟠", fluentEmoji: fluent("Orange circle"), category: "colors" },
-  { word: "purple", emoji: "🟣", fluentEmoji: fluent("Purple circle"), category: "colors" },
-  { word: "pink", emoji: "🩷", fluentEmoji: fluent("Pink heart"), category: "colors" },
-  { word: "white", emoji: "⬜", fluentEmoji: fluent("White large square"), category: "colors" },
-  { word: "black", emoji: "⬛", fluentEmoji: fluent("Black large square"), category: "colors" },
-  { word: "brown", emoji: "🟤", fluentEmoji: fluent("Brown circle"), category: "colors" },
+  { word: "red", emoji: "🔴", category: "colors" },
+  { word: "blue", emoji: "🔵", category: "colors" },
+  { word: "green", emoji: "🟢", category: "colors" },
+  { word: "yellow", emoji: "🟡", category: "colors" },
+  { word: "orange", emoji: "🟠", category: "colors" },
+  { word: "purple", emoji: "🟣", category: "colors" },
+  { word: "pink", emoji: "🩷", category: "colors" },
+  { word: "white", emoji: "⬜", category: "colors" },
+  { word: "black", emoji: "⬛", category: "colors" },
+  { word: "brown", emoji: "🟤", category: "colors" },
 ];
 
 const CATEGORIES = [
@@ -227,40 +215,6 @@ function speakEnglishFallback(text: string): Promise<void> {
     });
   }
   return Promise.resolve();
-}
-
-/** Fluent Emoji画像（読み込み失敗時は通常絵文字にフォールバック） */
-function FluentEmojiImage({
-  card,
-  size,
-  className,
-}: {
-  card: WordCard;
-  size: number;
-  className?: string;
-}) {
-  const [useFallback, setUseFallback] = useState(false);
-
-  if (useFallback || !card.fluentEmoji) {
-    return (
-      <span className={className} style={{ fontSize: size }}>
-        {card.emoji}
-      </span>
-    );
-  }
-
-  return (
-    <Image
-      src={card.fluentEmoji}
-      alt={card.word}
-      width={size}
-      height={size}
-      className={className}
-      onError={() => setUseFallback(true)}
-      unoptimized
-      priority
-    />
-  );
 }
 
 export default function EnglishFlash({ childId, childName }: Props) {
@@ -463,8 +417,8 @@ export default function EnglishFlash({ childId, childName }: Props) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-[min(50vmin,480px)] h-[min(50vmin,480px)] flex items-center justify-center">
-            <FluentEmojiImage card={card} size={480} className="w-full h-full object-contain" />
+          <div className="text-[min(40vmin,200px)] leading-none">
+            {card.emoji}
           </div>
           <div className="text-[min(12vmin,72px)] font-bold text-gray-800 tracking-wide">
             {card.word}
