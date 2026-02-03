@@ -130,8 +130,29 @@ function getDefaultProgress(): ProgressData {
   };
 }
 
-/** 日本語読み上げ（speechSynthesis） */
-function speakJapanese(text: string): Promise<void> {
+/** MP3ファイルで日本語読み上げ
+ *  Promiseを返し、発話完了（またはエラー）時にresolveする */
+let currentAudio: HTMLAudioElement | null = null;
+function speakJapanese(word: string): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+  const filename = `${word}.mp3`;
+  return new Promise<void>((resolve) => {
+    const audio = new Audio(`/audio/hiragana-flash/${filename}`);
+    currentAudio = audio;
+    audio.onended = () => resolve();
+    audio.onerror = () => {
+      speakJapaneseFallback(word).then(resolve);
+    };
+    audio.play().catch(() => speakJapaneseFallback(word).then(resolve));
+  });
+}
+
+/** speechSynthesisフォールバック */
+function speakJapaneseFallback(text: string): Promise<void> {
   if (typeof window !== "undefined" && window.speechSynthesis) {
     return new Promise<void>((resolve) => {
       window.speechSynthesis.cancel();
@@ -244,18 +265,18 @@ export default function HiraganaFlash({ childId, childName }: Props) {
     setNewBadges([]);
     sessionStartRef.current = Date.now();
     cancelledRef.current = false;
-
-    // 最初のカードを読み上げ（少し待ってから）
-    setTimeout(() => {
-      speechPromiseRef.current = speakJapanese(sessionCards[0].word);
-    }, 300);
+    // 最初のカードの音声promiseを即座に設定（useEffectより先に）
+    speechPromiseRef.current = speakJapanese(sessionCards[0].word);
   }, [progress, pickCards]);
 
-  // 次のカードへ自動進行
+  // 次のカードへ自動進行（表示時間経過 → 音声完了の両方を待つ）
   useEffect(() => {
-    if (phase !== "playing" || !progress) return;
+    if (phase !== "playing" || !progress || cards.length === 0) return;
 
     cancelledRef.current = false;
+
+    // 現在のカードの音声promiseを取得（キャプチャ）
+    const currentSpeechPromise = speechPromiseRef.current;
 
     const advanceToNext = () => {
       if (cancelledRef.current) return;
@@ -308,8 +329,9 @@ export default function HiraganaFlash({ childId, childName }: Props) {
         setPhase("done");
         return;
       }
-      setCurrentCardIndex(nextIndex);
+      // 次のカードの音声を開始してからstateを更新
       speechPromiseRef.current = speakJapanese(cards[nextIndex].word);
+      setCurrentCardIndex(nextIndex);
     };
 
     // 表示時間と音声完了の両方を待ってから次へ進む
@@ -317,7 +339,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
       timerRef.current = setTimeout(resolve, progress.speed * 1000);
     });
 
-    Promise.all([timerPromise, speechPromiseRef.current]).then(() => {
+    Promise.all([timerPromise, currentSpeechPromise]).then(() => {
       advanceToNext();
     });
 
