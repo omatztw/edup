@@ -121,6 +121,12 @@ export default function ChildrenManager({
                 >
                   英語フラッシュ
                 </a>
+                <a
+                  href={`/play/hiragana-flash?child=${child.id}`}
+                  className="rounded-lg bg-pink-50 px-3 py-1.5 text-sm text-pink-600 hover:bg-pink-100"
+                >
+                  ひらがな
+                </a>
               </div>
             </div>
           ))}
