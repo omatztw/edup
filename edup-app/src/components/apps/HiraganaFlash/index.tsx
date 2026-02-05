@@ -69,6 +69,38 @@ const HIRAGANA_DATA: HiraganaCard[] = [
   { kana: "わ", word: "わに", kanji: "鰐", emoji: "🐊" },
   { kana: "を", word: "を", kanji: "を", emoji: "📝" },
   { kana: "ん", word: "ん", kanji: "ん", emoji: "💤" },
+  // --- 濁音 ---
+  // が行
+  { kana: "が", word: "がっこう", kanji: "学校", emoji: "🏫" },
+  { kana: "ぎ", word: "ぎたー", kanji: "ギター", emoji: "🎸" },
+  { kana: "ぐ", word: "ぐー", kanji: "グー", emoji: "✊" },
+  { kana: "げ", word: "げーむ", kanji: "ゲーム", emoji: "🎮" },
+  { kana: "ご", word: "ごりら", kanji: "ゴリラ", emoji: "🦍" },
+  // ざ行
+  { kana: "ざ", word: "ざりがに", kanji: "ザリガニ", emoji: "🦞" },
+  { kana: "じ", word: "じしゃく", kanji: "磁石", emoji: "🧲" },
+  { kana: "ず", word: "ずぼん", kanji: "ズボン", emoji: "👖" },
+  { kana: "ぜ", word: "ぜりー", kanji: "ゼリー", emoji: "🍮" },
+  { kana: "ぞ", word: "ぞう", kanji: "象", emoji: "🐘" },
+  // だ行
+  { kana: "だ", word: "だんご", kanji: "団子", emoji: "🍡" },
+  { kana: "ぢ", word: "ぢ", kanji: "ぢ", emoji: "📝" },
+  { kana: "づ", word: "づ", kanji: "づ", emoji: "📝" },
+  { kana: "で", word: "でんしゃ", kanji: "電車", emoji: "🚃" },
+  { kana: "ど", word: "どんぐり", kanji: "団栗", emoji: "🌰" },
+  // ば行
+  { kana: "ば", word: "ばなな", kanji: "バナナ", emoji: "🍌" },
+  { kana: "び", word: "びーだま", kanji: "ビー玉", emoji: "🔮" },
+  { kana: "ぶ", word: "ぶどう", kanji: "葡萄", emoji: "🍇" },
+  { kana: "べ", word: "べる", kanji: "ベル", emoji: "🔔" },
+  { kana: "ぼ", word: "ぼうし", kanji: "帽子", emoji: "🎩" },
+  // --- 半濁音 ---
+  // ぱ行
+  { kana: "ぱ", word: "ぱんだ", kanji: "パンダ", emoji: "🐼" },
+  { kana: "ぴ", word: "ぴあの", kanji: "ピアノ", emoji: "🎹" },
+  { kana: "ぷ", word: "ぷーる", kanji: "プール", emoji: "🏊" },
+  { kana: "ぺ", word: "ぺんぎん", kanji: "ペンギン", emoji: "🐧" },
+  { kana: "ぽ", word: "ぽすと", kanji: "ポスト", emoji: "📮" },
 ];
 
 // 行ごとのカテゴリ
@@ -84,6 +116,13 @@ const CATEGORIES = [
   { id: "ya", label: "や行", kanas: ["や", "ゆ", "よ"] },
   { id: "ra", label: "ら行", kanas: ["ら", "り", "る", "れ", "ろ"] },
   { id: "wa", label: "わ行", kanas: ["わ", "を", "ん"] },
+  // 濁音
+  { id: "ga", label: "が行", kanas: ["が", "ぎ", "ぐ", "げ", "ご"] },
+  { id: "za", label: "ざ行", kanas: ["ざ", "じ", "ず", "ぜ", "ぞ"] },
+  { id: "da", label: "だ行", kanas: ["だ", "ぢ", "づ", "で", "ど"] },
+  { id: "ba", label: "ば行", kanas: ["ば", "び", "ぶ", "べ", "ぼ"] },
+  // 半濁音
+  { id: "pa", label: "ぱ行", kanas: ["ぱ", "ぴ", "ぷ", "ぺ", "ぽ"] },
 ];
 
 // 表示モード
