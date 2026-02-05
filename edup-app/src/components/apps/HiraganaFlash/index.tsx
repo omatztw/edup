@@ -15,56 +15,97 @@ type HiraganaCard = {
 const HIRAGANA_DATA: HiraganaCard[] = [
   // あ行
   { kana: "あ", word: "あり", kanji: "蟻", emoji: "🐜" },
+  { kana: "あ", word: "あめ", kanji: "飴", emoji: "🍬" },
+  { kana: "あ", word: "あひる", kanji: "家鴨", emoji: "🦆" },
   { kana: "い", word: "いぬ", kanji: "犬", emoji: "🐕" },
+  { kana: "い", word: "いちご", kanji: "苺", emoji: "🍓" },
+  { kana: "い", word: "いるか", kanji: "海豚", emoji: "🐬" },
   { kana: "う", word: "うし", kanji: "牛", emoji: "🐄" },
+  { kana: "う", word: "うさぎ", kanji: "兎", emoji: "🐰" },
+  { kana: "う", word: "うみ", kanji: "海", emoji: "🌊" },
   { kana: "え", word: "えび", kanji: "海老", emoji: "🦐" },
+  { kana: "え", word: "えんぴつ", kanji: "鉛筆", emoji: "✏️" },
   { kana: "お", word: "おに", kanji: "鬼", emoji: "👹" },
+  { kana: "お", word: "おばけ", kanji: "お化け", emoji: "👻" },
   // か行
   { kana: "か", word: "かに", kanji: "蟹", emoji: "🦀" },
+  { kana: "か", word: "かさ", kanji: "傘", emoji: "☂️" },
+  { kana: "か", word: "かめ", kanji: "亀", emoji: "🐢" },
   { kana: "き", word: "きつね", kanji: "狐", emoji: "🦊" },
+  { kana: "き", word: "きのこ", kanji: "茸", emoji: "🍄" },
   { kana: "く", word: "くま", kanji: "熊", emoji: "🐻" },
+  { kana: "く", word: "くじら", kanji: "鯨", emoji: "🐋" },
+  { kana: "く", word: "くるま", kanji: "車", emoji: "🚗" },
   { kana: "け", word: "けむし", kanji: "毛虫", emoji: "🐛" },
+  { kana: "け", word: "けーき", kanji: "ケーキ", emoji: "🎂" },
   { kana: "こ", word: "こあら", kanji: "コアラ", emoji: "🐨" },
+  { kana: "こ", word: "こいのぼり", kanji: "鯉のぼり", emoji: "🎏" },
   // さ行
   { kana: "さ", word: "さる", kanji: "猿", emoji: "🐵" },
+  { kana: "さ", word: "さかな", kanji: "魚", emoji: "🐟" },
   { kana: "し", word: "しか", kanji: "鹿", emoji: "🦌" },
+  { kana: "し", word: "しんかんせん", kanji: "新幹線", emoji: "🚄" },
   { kana: "す", word: "すいか", kanji: "西瓜", emoji: "🍉" },
+  { kana: "す", word: "すし", kanji: "寿司", emoji: "🍣" },
   { kana: "せ", word: "せんす", kanji: "扇子", emoji: "🪭" },
+  { kana: "せ", word: "せんべい", kanji: "煎餅", emoji: "🍘" },
   { kana: "そ", word: "そら", kanji: "空", emoji: "🌤️" },
+  { kana: "そ", word: "そり", kanji: "橇", emoji: "🛷" },
   // た行
   { kana: "た", word: "たこ", kanji: "蛸", emoji: "🐙" },
+  { kana: "た", word: "たいよう", kanji: "太陽", emoji: "☀️" },
   { kana: "ち", word: "ちょう", kanji: "蝶", emoji: "🦋" },
+  { kana: "ち", word: "ちーず", kanji: "チーズ", emoji: "🧀" },
   { kana: "つ", word: "つき", kanji: "月", emoji: "🌙" },
+  { kana: "つ", word: "つばめ", kanji: "燕", emoji: "🐦" },
   { kana: "て", word: "てんとうむし", kanji: "天道虫", emoji: "🐞" },
+  { kana: "て", word: "てがみ", kanji: "手紙", emoji: "💌" },
   { kana: "と", word: "とら", kanji: "虎", emoji: "🐯" },
+  { kana: "と", word: "とけい", kanji: "時計", emoji: "⏰" },
   // な行
   { kana: "な", word: "なす", kanji: "茄子", emoji: "🍆" },
+  { kana: "な", word: "なると", kanji: "鳴門", emoji: "🍥" },
   { kana: "に", word: "にわとり", kanji: "鶏", emoji: "🐔" },
+  { kana: "に", word: "にじ", kanji: "虹", emoji: "🌈" },
   { kana: "ぬ", word: "ぬいぐるみ", kanji: "縫いぐるみ", emoji: "🧸" },
   { kana: "ね", word: "ねこ", kanji: "猫", emoji: "🐱" },
+  { kana: "ね", word: "ねずみ", kanji: "鼠", emoji: "🐭" },
   { kana: "の", word: "のり", kanji: "海苔", emoji: "🍙" },
   // は行
   { kana: "は", word: "はな", kanji: "花", emoji: "🌸" },
+  { kana: "は", word: "はち", kanji: "蜂", emoji: "🐝" },
   { kana: "ひ", word: "ひよこ", kanji: "雛", emoji: "🐤" },
+  { kana: "ひ", word: "ひこうき", kanji: "飛行機", emoji: "✈️" },
   { kana: "ふ", word: "ふくろう", kanji: "梟", emoji: "🦉" },
+  { kana: "ふ", word: "ふね", kanji: "船", emoji: "🚢" },
   { kana: "へ", word: "へび", kanji: "蛇", emoji: "🐍" },
   { kana: "ほ", word: "ほし", kanji: "星", emoji: "⭐" },
+  { kana: "ほ", word: "ほうき", kanji: "箒", emoji: "🧹" },
   // ま行
   { kana: "ま", word: "まめ", kanji: "豆", emoji: "🫘" },
+  { kana: "ま", word: "まと", kanji: "的", emoji: "🎯" },
   { kana: "み", word: "みかん", kanji: "蜜柑", emoji: "🍊" },
+  { kana: "み", word: "みず", kanji: "水", emoji: "💧" },
   { kana: "む", word: "むし", kanji: "虫", emoji: "🐛" },
   { kana: "め", word: "め", kanji: "目", emoji: "👁️" },
+  { kana: "め", word: "めだまやき", kanji: "目玉焼き", emoji: "🍳" },
   { kana: "も", word: "もも", kanji: "桃", emoji: "🍑" },
+  { kana: "も", word: "もり", kanji: "森", emoji: "🌲" },
   // や行
   { kana: "や", word: "やま", kanji: "山", emoji: "⛰️" },
+  { kana: "や", word: "やきいも", kanji: "焼き芋", emoji: "🍠" },
   { kana: "ゆ", word: "ゆき", kanji: "雪", emoji: "❄️" },
+  { kana: "ゆ", word: "ゆびわ", kanji: "指輪", emoji: "💍" },
   { kana: "よ", word: "よっと", kanji: "ヨット", emoji: "⛵" },
   // ら行
   { kana: "ら", word: "らいおん", kanji: "ライオン", emoji: "🦁" },
+  { kana: "ら", word: "らっこ", kanji: "ラッコ", emoji: "🦦" },
   { kana: "り", word: "りんご", kanji: "林檎", emoji: "🍎" },
+  { kana: "り", word: "りす", kanji: "栗鼠", emoji: "🐿️" },
   { kana: "る", word: "るびー", kanji: "ルビー", emoji: "💎" },
   { kana: "れ", word: "れもん", kanji: "レモン", emoji: "🍋" },
   { kana: "ろ", word: "ろうそく", kanji: "蝋燭", emoji: "🕯️" },
+  { kana: "ろ", word: "ろけっと", kanji: "ロケット", emoji: "🚀" },
   // わ行
   { kana: "わ", word: "わに", kanji: "鰐", emoji: "🐊" },
   { kana: "を", word: "を", kanji: "を", emoji: "📝" },
@@ -72,13 +113,17 @@ const HIRAGANA_DATA: HiraganaCard[] = [
   // --- 濁音 ---
   // が行
   { kana: "が", word: "がっこう", kanji: "学校", emoji: "🏫" },
+  { kana: "が", word: "がいこつ", kanji: "骸骨", emoji: "💀" },
   { kana: "ぎ", word: "ぎたー", kanji: "ギター", emoji: "🎸" },
+  { kana: "ぎ", word: "ぎゅうにゅう", kanji: "牛乳", emoji: "🥛" },
   { kana: "ぐ", word: "ぐー", kanji: "グー", emoji: "✊" },
   { kana: "げ", word: "げーむ", kanji: "ゲーム", emoji: "🎮" },
   { kana: "ご", word: "ごりら", kanji: "ゴリラ", emoji: "🦍" },
+  { kana: "ご", word: "ごはん", kanji: "御飯", emoji: "🍚" },
   // ざ行
   { kana: "ざ", word: "ざりがに", kanji: "ザリガニ", emoji: "🦞" },
   { kana: "じ", word: "じしゃく", kanji: "磁石", emoji: "🧲" },
+  { kana: "じ", word: "じてんしゃ", kanji: "自転車", emoji: "🚲" },
   { kana: "ず", word: "ずぼん", kanji: "ズボン", emoji: "👖" },
   { kana: "ぜ", word: "ぜりー", kanji: "ゼリー", emoji: "🍮" },
   { kana: "ぞ", word: "ぞう", kanji: "象", emoji: "🐘" },
@@ -87,21 +132,31 @@ const HIRAGANA_DATA: HiraganaCard[] = [
   { kana: "ぢ", word: "ぢ", kanji: "ぢ", emoji: "📝" },
   { kana: "づ", word: "づ", kanji: "づ", emoji: "📝" },
   { kana: "で", word: "でんしゃ", kanji: "電車", emoji: "🚃" },
+  { kana: "で", word: "でんわ", kanji: "電話", emoji: "📞" },
   { kana: "ど", word: "どんぐり", kanji: "団栗", emoji: "🌰" },
+  { kana: "ど", word: "どーなつ", kanji: "ドーナツ", emoji: "🍩" },
   // ば行
   { kana: "ば", word: "ばなな", kanji: "バナナ", emoji: "🍌" },
+  { kana: "ば", word: "ばった", kanji: "飛蝗", emoji: "🦗" },
   { kana: "び", word: "びーだま", kanji: "ビー玉", emoji: "🔮" },
   { kana: "ぶ", word: "ぶどう", kanji: "葡萄", emoji: "🍇" },
+  { kana: "ぶ", word: "ぶた", kanji: "豚", emoji: "🐷" },
   { kana: "べ", word: "べる", kanji: "ベル", emoji: "🔔" },
   { kana: "ぼ", word: "ぼうし", kanji: "帽子", emoji: "🎩" },
+  { kana: "ぼ", word: "ぼーる", kanji: "ボール", emoji: "⚽" },
   // --- 半濁音 ---
   // ぱ行
   { kana: "ぱ", word: "ぱんだ", kanji: "パンダ", emoji: "🐼" },
+  { kana: "ぱ", word: "ぱいなっぷる", kanji: "パイナップル", emoji: "🍍" },
   { kana: "ぴ", word: "ぴあの", kanji: "ピアノ", emoji: "🎹" },
   { kana: "ぷ", word: "ぷーる", kanji: "プール", emoji: "🏊" },
   { kana: "ぺ", word: "ぺんぎん", kanji: "ペンギン", emoji: "🐧" },
   { kana: "ぽ", word: "ぽすと", kanji: "ポスト", emoji: "📮" },
+  { kana: "ぽ", word: "ぽっぷこーん", kanji: "ポップコーン", emoji: "🍿" },
 ];
+
+// ユニークなかな文字数（進捗表示用）
+const UNIQUE_KANA_COUNT = new Set(HIRAGANA_DATA.map((h) => h.kana)).size;
 
 // 行ごとのカテゴリ
 const CATEGORIES = [
@@ -522,7 +577,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
 
   // ホーム画面
   const sessionsLeft = progress ? 3 - progress.todaySessions : 0;
-  const filteredCount = getFilteredCards().length;
+  const filteredCount = new Set(getFilteredCards().map((h) => h.kana)).size;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-pink-50 to-white px-4">
@@ -547,7 +602,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
           <div className="text-sm text-gray-600">
             覚えたひらがな:{" "}
             <span className="font-medium">
-              {progress!.learnedKanas.length} / {HIRAGANA_DATA.length}
+              {progress!.learnedKanas.length} / {UNIQUE_KANA_COUNT}
             </span>
           </div>
 
@@ -556,7 +611,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
             <div
               className="h-2 rounded-full bg-pink-400 transition-all"
               style={{
-                width: `${(progress!.learnedKanas.length / HIRAGANA_DATA.length) * 100}%`,
+                width: `${(progress!.learnedKanas.length / UNIQUE_KANA_COUNT) * 100}%`,
               }}
             />
           </div>
