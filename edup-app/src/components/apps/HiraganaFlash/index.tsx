@@ -6,10 +6,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 // --- ひらがなデータ ---
 type HiraganaCard = {
-  kana: string;    // ひらがな1文字
-  word: string;    // 単語（ひらがな）
-  kanji: string;   // 漢字表記
-  emoji: string;   // 絵文字
+  kana: string; // ひらがな1文字
+  word: string; // 単語（ひらがな）
+  kanji: string; // 漢字表記
+  emoji: string; // 絵文字
 };
 
 const HIRAGANA_DATA: HiraganaCard[] = [
@@ -108,8 +108,6 @@ const HIRAGANA_DATA: HiraganaCard[] = [
   { kana: "ろ", word: "ろけっと", kanji: "ロケット", emoji: "🚀" },
   // わ行
   { kana: "わ", word: "わに", kanji: "鰐", emoji: "🐊" },
-  { kana: "を", word: "を", kanji: "を", emoji: "📝" },
-  { kana: "ん", word: "ん", kanji: "ん", emoji: "💤" },
   // --- 濁音 ---
   // が行
   { kana: "が", word: "がっこう", kanji: "学校", emoji: "🏫" },
@@ -129,8 +127,6 @@ const HIRAGANA_DATA: HiraganaCard[] = [
   { kana: "ぞ", word: "ぞう", kanji: "象", emoji: "🐘" },
   // だ行
   { kana: "だ", word: "だんご", kanji: "団子", emoji: "🍡" },
-  { kana: "ぢ", word: "ぢ", kanji: "ぢ", emoji: "📝" },
-  { kana: "づ", word: "づ", kanji: "づ", emoji: "📝" },
   { kana: "で", word: "でんしゃ", kanji: "電車", emoji: "🚃" },
   { kana: "で", word: "でんわ", kanji: "電話", emoji: "📞" },
   { kana: "ど", word: "どんぐり", kanji: "団栗", emoji: "🌰" },
@@ -298,7 +294,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
             .from("progress")
             .upsert(
               { child_id: childId, app_id: "hiragana-flash", data: p },
-              { onConflict: "child_id,app_id" }
+              { onConflict: "child_id,app_id" },
             );
         }
         setProgress(p);
@@ -316,10 +312,10 @@ export default function HiraganaFlash({ childId, childName }: Props) {
         .from("progress")
         .upsert(
           { child_id: childId, app_id: "hiragana-flash", data: p },
-          { onConflict: "child_id,app_id" }
+          { onConflict: "child_id,app_id" },
         );
     },
-    [childId, supabase]
+    [childId, supabase],
   );
 
   // カテゴリでフィルター
@@ -339,7 +335,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
 
     // まだ覚えてないひらがなを優先
     const unlearned = pool.filter(
-      (h) => !progress.learnedKanas.includes(h.kana)
+      (h) => !progress.learnedKanas.includes(h.kana),
     );
     const source = unlearned.length >= CARDS_PER_SESSION ? unlearned : pool;
 
@@ -379,10 +375,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
       if (nextIndex >= cards.length) {
         // セッション完了
         const newLearned = [
-          ...new Set([
-            ...progress.learnedKanas,
-            ...cards.map((c) => c.kana),
-          ]),
+          ...new Set([...progress.learnedKanas, ...cards.map((c) => c.kana)]),
         ];
         const updated: ProgressData = {
           ...progress,
@@ -397,7 +390,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
 
         // アクティビティログ
         const duration = Math.round(
-          (Date.now() - sessionStartRef.current) / 1000
+          (Date.now() - sessionStartRef.current) / 1000,
         );
         supabase
           .from("activity_logs")
@@ -416,7 +409,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
             checkAndAwardBadges(supabase, childId, "hiragana-flash").then(
               (badges) => {
                 if (badges.length > 0) setNewBadges(badges);
-              }
+              },
             );
           });
 
@@ -441,7 +434,15 @@ export default function HiraganaFlash({ childId, childName }: Props) {
       cancelledRef.current = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [phase, currentCardIndex, cards, progress, saveProgress, childId, supabase]);
+  }, [
+    phase,
+    currentCardIndex,
+    cards,
+    progress,
+    saveProgress,
+    childId,
+    supabase,
+  ]);
 
   const changeSpeed = (newSpeed: number) => {
     if (!progress) return;
@@ -466,8 +467,8 @@ export default function HiraganaFlash({ childId, childName }: Props) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-400">読み込み中...</p>
+      <div className='flex min-h-screen items-center justify-center'>
+        <p className='text-gray-400'>読み込み中...</p>
       </div>
     );
   }
@@ -478,38 +479,38 @@ export default function HiraganaFlash({ childId, childName }: Props) {
     const displayMode = progress?.displayMode ?? "full";
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="text-[min(35vmin,180px)] leading-none">
+      <div className='fixed inset-0 z-50 flex items-center justify-center bg-white'>
+        <div className='flex flex-col items-center gap-4'>
+          <div className='text-[min(35vmin,180px)] leading-none'>
             {card.emoji}
           </div>
           {displayMode === "full" && (
             <>
-              <div className="text-[min(15vmin,90px)] font-bold text-gray-800">
+              <div className='text-[min(15vmin,90px)] font-bold text-gray-800'>
                 {card.word}
               </div>
-              <div className="text-[min(8vmin,48px)] text-gray-500">
+              <div className='text-[min(8vmin,48px)] text-gray-500'>
                 {card.kanji}
               </div>
             </>
           )}
           {displayMode === "hiragana" && (
-            <div className="text-[min(15vmin,90px)] font-bold text-gray-800">
+            <div className='text-[min(15vmin,90px)] font-bold text-gray-800'>
               {card.word}
             </div>
           )}
           {displayMode === "kanji" && (
             <>
-              <div className="text-[min(15vmin,90px)] font-bold text-gray-800">
+              <div className='text-[min(15vmin,90px)] font-bold text-gray-800'>
                 {card.kanji}
               </div>
-              <div className="text-[min(6vmin,36px)] text-gray-400">
+              <div className='text-[min(6vmin,36px)] text-gray-400'>
                 {card.word}
               </div>
             </>
           )}
         </div>
-        <div className="fixed bottom-8 text-center text-gray-400 text-sm">
+        <div className='fixed bottom-8 text-center text-gray-400 text-sm'>
           {currentCardIndex + 1} / {cards.length}
         </div>
       </div>
@@ -520,30 +521,30 @@ export default function HiraganaFlash({ childId, childName }: Props) {
   if (phase === "done") {
     const remaining = progress ? Math.max(0, 3 - progress.todaySessions) : 0;
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-pink-50 to-white px-4">
-        <div className="w-full max-w-sm space-y-6 text-center">
-          <div className="text-4xl">{remaining <= 0 ? "🎉" : "👏"}</div>
-          <h2 className="text-xl font-bold text-gray-800">
+      <div className='flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-pink-50 to-white px-4'>
+        <div className='w-full max-w-sm space-y-6 text-center'>
+          <div className='text-4xl'>{remaining <= 0 ? "🎉" : "👏"}</div>
+          <h2 className='text-xl font-bold text-gray-800'>
             {remaining <= 0 ? "今日の規定回数クリア！" : `あと ${remaining} 回`}
           </h2>
-          <p className="text-sm text-gray-500">
+          <p className='text-sm text-gray-500'>
             {childName}さん・レベル {progress?.level}・覚えたひらがな{" "}
             {progress?.learnedKanas.length ?? 0} 文字
           </p>
-          <div className="text-sm text-gray-500">
+          <div className='text-sm text-gray-500'>
             今日のセッション: {cards.map((c) => c.kana).join(" ")}
           </div>
 
           {newBadges.length > 0 && (
-            <div className="rounded-lg border-2 border-yellow-300 bg-yellow-50 p-4">
-              <p className="mb-2 text-sm font-bold text-yellow-700">
+            <div className='rounded-lg border-2 border-yellow-300 bg-yellow-50 p-4'>
+              <p className='mb-2 text-sm font-bold text-yellow-700'>
                 バッジ獲得！
               </p>
-              <div className="flex justify-center gap-3">
+              <div className='flex justify-center gap-3'>
                 {newBadges.map((badge) => (
-                  <div key={badge.id} className="flex flex-col items-center">
-                    <span className="text-3xl">{badge.icon}</span>
-                    <span className="mt-1 text-xs font-medium text-gray-700">
+                  <div key={badge.id} className='flex flex-col items-center'>
+                    <span className='text-3xl'>{badge.icon}</span>
+                    <span className='mt-1 text-xs font-medium text-gray-700'>
                       {badge.name}
                     </span>
                   </div>
@@ -552,7 +553,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
             </div>
           )}
 
-          <div className="flex flex-col gap-3">
+          <div className='flex flex-col gap-3'>
             <button
               onClick={startSession}
               className={`rounded-lg py-3 text-base font-medium transition ${
@@ -564,8 +565,8 @@ export default function HiraganaFlash({ childId, childName }: Props) {
               {remaining > 0 ? "もう1回やる" : "もう1回やる（追加）"}
             </button>
             <a
-              href="/dashboard"
-              className="rounded-lg border border-gray-300 py-3 text-base font-medium text-gray-600 transition hover:bg-gray-50"
+              href='/dashboard'
+              className='rounded-lg border border-gray-300 py-3 text-base font-medium text-gray-600 transition hover:bg-gray-50'
             >
               ダッシュボードに戻る
             </a>
@@ -580,36 +581,34 @@ export default function HiraganaFlash({ childId, childName }: Props) {
   const filteredCount = new Set(getFilteredCards().map((h) => h.kana)).size;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-pink-50 to-white px-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800">
+    <div className='flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-pink-50 to-white px-4'>
+      <div className='w-full max-w-sm space-y-6'>
+        <div className='text-center'>
+          <h2 className='text-2xl font-bold text-gray-800'>
             ひらがなフラッシュ
           </h2>
-          <p className="mt-1 text-sm text-gray-500">{childName}さん</p>
+          <p className='mt-1 text-sm text-gray-500'>{childName}さん</p>
         </div>
 
-        <div className="rounded-lg border bg-white p-5 shadow-sm space-y-4">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500">
-              レベル {progress!.level}
-            </span>
-            <span className="text-gray-500">
+        <div className='rounded-lg border bg-white p-5 shadow-sm space-y-4'>
+          <div className='flex justify-between text-sm'>
+            <span className='text-gray-500'>レベル {progress!.level}</span>
+            <span className='text-gray-500'>
               今日 {progress!.todaySessions}/3 回
             </span>
           </div>
 
-          <div className="text-sm text-gray-600">
+          <div className='text-sm text-gray-600'>
             覚えたひらがな:{" "}
-            <span className="font-medium">
+            <span className='font-medium'>
               {progress!.learnedKanas.length} / {UNIQUE_KANA_COUNT}
             </span>
           </div>
 
           {/* 進捗バー */}
-          <div className="h-2 rounded-full bg-gray-100">
+          <div className='h-2 rounded-full bg-gray-100'>
             <div
-              className="h-2 rounded-full bg-pink-400 transition-all"
+              className='h-2 rounded-full bg-pink-400 transition-all'
               style={{
                 width: `${(progress!.learnedKanas.length / UNIQUE_KANA_COUNT) * 100}%`,
               }}
@@ -617,9 +616,9 @@ export default function HiraganaFlash({ childId, childName }: Props) {
           </div>
 
           {/* 表示モード選択 */}
-          <div className="space-y-1">
-            <span className="text-xs text-gray-500">表示モード:</span>
-            <div className="flex flex-wrap gap-1.5">
+          <div className='space-y-1'>
+            <span className='text-xs text-gray-500'>表示モード:</span>
+            <div className='flex flex-wrap gap-1.5'>
               {DISPLAY_MODES.map((mode) => (
                 <button
                   key={mode.id}
@@ -637,9 +636,9 @@ export default function HiraganaFlash({ childId, childName }: Props) {
           </div>
 
           {/* カテゴリ選択 */}
-          <div className="space-y-1">
-            <span className="text-xs text-gray-500">行:</span>
-            <div className="flex flex-wrap gap-1.5">
+          <div className='space-y-1'>
+            <span className='text-xs text-gray-500'>行:</span>
+            <div className='flex flex-wrap gap-1.5'>
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.id}
@@ -655,15 +654,15 @@ export default function HiraganaFlash({ childId, childName }: Props) {
               ))}
             </div>
             {progress!.category !== "all" && (
-              <p className="text-xs text-gray-400 mt-1">
+              <p className='text-xs text-gray-400 mt-1'>
                 選択中: {filteredCount}文字
               </p>
             )}
           </div>
 
           {/* 速度設定 */}
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-500">速度:</span>
+          <div className='flex items-center gap-2 text-sm'>
+            <span className='text-gray-500'>速度:</span>
             {[1, 1.5, 2, 3, 4].map((s) => (
               <button
                 key={s}
@@ -680,7 +679,7 @@ export default function HiraganaFlash({ childId, childName }: Props) {
           </div>
 
           {sessionsLeft <= 0 && (
-            <div className="rounded-lg bg-pink-50 p-3 text-center text-sm text-pink-700">
+            <div className='rounded-lg bg-pink-50 p-3 text-center text-sm text-pink-700'>
               今日の規定回数（3回）クリア！
             </div>
           )}
@@ -698,8 +697,8 @@ export default function HiraganaFlash({ childId, childName }: Props) {
         </div>
 
         <a
-          href="/dashboard"
-          className="block text-center text-sm text-pink-600 hover:underline"
+          href='/dashboard'
+          className='block text-center text-sm text-pink-600 hover:underline'
         >
           ← ダッシュボードに戻る
         </a>
